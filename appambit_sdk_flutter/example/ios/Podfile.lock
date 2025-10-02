@@ -1,6 +1,8 @@
 PODS:
   - appambit_sdk_flutter (0.0.1):
+    - AppAmbitSdk (~> 0.0.8)
     - Flutter
+  - AppAmbitSdk (0.0.8)
   - Flutter (1.0.0)
   - integration_test (0.0.1):
     - Flutter
@@ -9,6 +11,10 @@ DEPENDENCIES:
   - appambit_sdk_flutter (from `.symlinks/plugins/appambit_sdk_flutter/ios`)
   - Flutter (from `Flutter`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
+
+SPEC REPOS:
+  trunk:
+    - AppAmbitSdk
 
 EXTERNAL SOURCES:
   appambit_sdk_flutter:
@@ -19,7 +25,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/integration_test/ios"
 
 SPEC CHECKSUMS:
-  appambit_sdk_flutter: 345d77d82595fea071a0bab7b94e855dfaaffada
+  appambit_sdk_flutter: ae56402dc261d699ae7d953b6f6183a56b4d15e9
+  AppAmbitSdk: c8fa4e7ddb1ab6537290750f78ec33efb3056c37
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573
 
