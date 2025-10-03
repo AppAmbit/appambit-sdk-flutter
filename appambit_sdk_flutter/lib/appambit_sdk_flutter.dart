@@ -100,7 +100,6 @@ class AppambitSdk {
   }) {
     _ensureRegistered();
 
-    // Prefer an explicit message; otherwise derive from exception.
     final String? messageStr = (message != null && message.isNotEmpty)
         ? message
         : _stringify(exception);

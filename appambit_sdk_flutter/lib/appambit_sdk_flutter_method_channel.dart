@@ -19,12 +19,6 @@ class MethodChannelAppambitSdkFlutter extends AppAmbitSdkFlutterPlatform {
     return MethodChannelAppambitSdkFlutter._internal();
   }
 
-  @override
-  Future<String?> getPlatformVersion() async {
-    final version = await methodChannel.invokeMethod<String>('getPlatformVersion');
-    return version;
-  }
-
   // Core
   @override
   Future<void> startCore({ required String appKey }) async {
@@ -106,21 +100,12 @@ class MethodChannelAppambitSdkFlutter extends AppAmbitSdkFlutterPlatform {
   }
 }
 
-// ---------- Registro explícito y top-level ----------
-
-// Llamable desde la fachada para asegurar el registro antes de usar la plataforma.
 void registerMethodChannelImplementation() {
-  // Si ya hay instance, no hacemos nada
   try {
-    // intentar leer instance; si ya está, retorna sin excepción
-    // (no accedemos a ningún método, solo a la referencia)
     final _ = AppAmbitSdkFlutterPlatform.instance;
     return;
-  } catch (_) {
-    // instance aún no está asignada: registramos
+  } on UnimplementedError {
   }
+
   MethodChannelAppambitSdkFlutter.createAndRegister();
 }
-
-// Además, tratamos de registrar automáticamente al cargar el archivo.
-final _methodChannelRegistration = MethodChannelAppambitSdkFlutter.createAndRegister();

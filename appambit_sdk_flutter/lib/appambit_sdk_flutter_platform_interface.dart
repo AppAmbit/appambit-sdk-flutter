@@ -16,10 +16,6 @@ abstract class AppAmbitSdkFlutterPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<String?> getPlatformVersion() {
-    throw UnimplementedError('getPlatformVersion() has not been implemented.');
-  }
-
   Future<void> startCore({ required String appKey }) {
     throw UnimplementedError('startCore() not implemented');
   }

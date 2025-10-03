@@ -6,7 +6,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
-    await AppambitSdk.start(appKey: 'fb614ff2-620d-47fe-9868-7e8688c4bf16');
+    await AppambitSdk.start(appKey: '<YOUR-APIKEY>');
   } on PlatformException catch (e) {
     debugPrint('Failed to start AppAmbit core: ${e.message}');
   }
@@ -62,7 +62,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  /// EJEMPLO 1: Enviar logError desde un catch con exception + stackTrace
   Future<void> _sendCaughtException() async {
     _setStatus('sending caught exception...');
     try {
@@ -186,10 +185,8 @@ class _HomePageState extends State<HomePage> {
               ElevatedButton(onPressed: _setUserId, child: const Text('setUserId')),
               ElevatedButton(onPressed: _trackEvent, child: const Text('trackEvent')),
               ElevatedButton(onPressed: _generateTestEvent, child: const Text('generateTestEvent')),
-              // logError (ahora con 3 ejemplos)
               ElevatedButton(onPressed: _sendCaughtException, child: const Text('logError')),
               ElevatedButton(onPressed: _sendMessageOnly, child: const Text('logError (message only)')),
-              //
               ElevatedButton(onPressed: _logErrorMessage, child: const Text('logErrorMessage (simple)')),
               ElevatedButton(onPressed: _generateTestCrash, child: const Text('generateTestCrash (will crash)')),
               const Divider(),
