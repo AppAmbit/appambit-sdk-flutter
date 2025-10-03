@@ -3,15 +3,124 @@ import 'package:flutter/services.dart';
 
 import 'appambit_sdk_flutter_platform_interface.dart';
 
-/// An implementation of [AppambitSdkFlutterPlatform] that uses method channels.
-class MethodChannelAppambitSdkFlutter extends AppambitSdkFlutterPlatform {
-  /// The method channel used to interact with the native platform.
+class MethodChannelAppambitSdkFlutter extends AppAmbitSdkFlutterPlatform {
   @visibleForTesting
-  final methodChannel = const MethodChannel('appambit_sdk_flutter');
+  final MethodChannel methodChannel = const MethodChannel('appambit_sdk_flutter');
+
+  final MethodChannel _core = const MethodChannel('com.appambit/appambitcore');
+  final MethodChannel _analytics = const MethodChannel('com.appambit/analytics');
+  final MethodChannel _crashes = const MethodChannel('com.appambit/crashes');
+
+  MethodChannelAppambitSdkFlutter._internal() : super() {
+    AppAmbitSdkFlutterPlatform.instance = this;
+  }
+
+  static MethodChannelAppambitSdkFlutter createAndRegister() {
+    return MethodChannelAppambitSdkFlutter._internal();
+  }
 
   @override
   Future<String?> getPlatformVersion() async {
     final version = await methodChannel.invokeMethod<String>('getPlatformVersion');
     return version;
   }
+
+  // Core
+  @override
+  Future<void> startCore({ required String appKey }) async {
+    await _core.invokeMethod('start', {'appKey': appKey});
+  }
+
+  // Analytics
+  @override
+  Future<void> setUserId(String userId) async {
+    await _analytics.invokeMethod('setUserId', {'userId': userId});
+  }
+
+  @override
+  Future<void> setEmail(String email) async {
+    await _analytics.invokeMethod('setEmail', {'email': email});
+  }
+
+  @override
+  Future<void> clearToken() async {
+    await _analytics.invokeMethod('clearToken');
+  }
+
+  @override
+  Future<void> startSession() async {
+    await _analytics.invokeMethod('startSession');
+  }
+
+  @override
+  Future<void> endSession() async {
+    await _analytics.invokeMethod('endSession');
+  }
+
+  @override
+  Future<void> enableManualSession() async {
+    await _analytics.invokeMethod('enableManualSession');
+  }
+
+  @override
+  Future<void> trackEvent(String name, Map<String,String> properties) async {
+    await _analytics.invokeMethod('trackEvent', {'name': name, 'properties': properties});
+  }
+
+  @override
+  Future<void> generateTestEvent() async {
+    await _analytics.invokeMethod('generateTestEvent');
+  }
+
+  // Crashes
+  @override
+  Future<bool> didCrashInLastSession() async {
+    final res = await _crashes.invokeMethod<bool>('didCrashInLastSession');
+    return res ?? false;
+  }
+
+  @override
+  Future<void> generateTestCrash() async {
+    await _crashes.invokeMethod('generateTestCrash');
+  }
+
+  @override
+  Future<void> logError(Map<String, dynamic>? payload) async {
+    await _crashes.invokeMethod('logError', payload);
+  }
+
+  @override
+  Future<void> logErrorMessage(
+      String message, {
+        Map<String,String>? properties,
+        String? classFqn,
+        String? fileName,
+        int? lineNumber,
+      }) async {
+    final args = <String, dynamic>{'message': message};
+    if (properties != null) args['properties'] = properties;
+    if (classFqn != null) args['classFqn'] = classFqn;
+    if (fileName != null) args['fileName'] = fileName;
+    if (lineNumber != null) args['lineNumber'] = lineNumber;
+    await _crashes.invokeMethod('logErrorMessage', args);
+  }
 }
+
+// ---------- Registro explícito y top-level ----------
+
+// Llamable desde la fachada para asegurar el registro antes de usar la plataforma.
+void registerMethodChannelImplementation() {
+  // Si ya hay instance, no hacemos nada
+  try {
+    // intentar leer instance; si ya está, retorna sin excepción
+    // (no accedemos a ningún método, solo a la referencia)
+    final _ = AppAmbitSdkFlutterPlatform.instance;
+    return;
+  } catch (_) {
+    // instance aún no está asignada: registramos
+  }
+  MethodChannelAppambitSdkFlutter.createAndRegister();
+}
+
+// Además, tratamos de registrar automáticamente al cargar el archivo.
+final _methodChannelRegistration = MethodChannelAppambitSdkFlutter.createAndRegister();
