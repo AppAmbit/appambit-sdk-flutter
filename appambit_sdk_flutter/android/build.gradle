@@ -66,5 +66,5 @@ android {
 }
 
 dependencies {
-    implementation("com.appambit:appambit:+")
+    implementation("com.appambit:appambit:0.0.8")
 }
