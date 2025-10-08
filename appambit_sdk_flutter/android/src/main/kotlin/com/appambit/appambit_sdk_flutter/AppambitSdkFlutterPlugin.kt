@@ -40,8 +40,14 @@ class AppambitSdkFlutterPlugin :
         result: Result
     ) {
         if (call.method == "start") {
-            val appKey: String = call.argument("appKey")!!
-            AppAmbit.start(context, appKey)
+            val args = call.arguments as? Map<*, *>
+            val appKey = args?.get("appKey") as? String
+            if (appKey == null || appKey.isEmpty()) {
+                result.error("BAD_ARGS", "Missing 'appKey'", null)
+            } else {
+                AppAmbit.start(context, appKey)
+                result.success(null)
+            }
         } else {
             result.notImplemented()
         }

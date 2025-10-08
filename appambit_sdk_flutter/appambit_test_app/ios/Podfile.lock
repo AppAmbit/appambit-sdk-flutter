@@ -25,10 +25,10 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/integration_test/ios"
 
 SPEC CHECKSUMS:
-  appambit_sdk_flutter: ae56402dc261d699ae7d953b6f6183a56b4d15e9
+  appambit_sdk_flutter: 7c01ab0cf1c58e49de54c33903b1dbc2fca217fd
   AppAmbitSdk: c8fa4e7ddb1ab6537290750f78ec33efb3056c37
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573
+  integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
 
 PODFILE CHECKSUM: 3c63482e143d1b91d2d2560aee9fb04ecc74ac7e
 

@@ -1,4 +1,3 @@
-// lib/main.dart
 import 'dart:io';
 
 import 'package:appambit_sdk_flutter_example/analytics_view.dart';
@@ -8,6 +7,8 @@ import 'package:appambit_sdk_flutter/appambit_sdk_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  //Uncomment the line for automatic session management
+  //AppambitSdk.enableManualSession();
   AppambitSdk.start(appKey: '<YOUR-APPKEY>');
   runApp(const MyApp());
 }

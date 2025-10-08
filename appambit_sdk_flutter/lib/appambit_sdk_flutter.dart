@@ -104,7 +104,12 @@ class AppambitSdk {
         ? message
         : _stringify(exception);
 
-    final String? stackStr = _normalizeStackTrace(exception, stackTrace);
+    final StackTrace effectiveStack =
+        stackTrace ?? (exception is Error && exception.stackTrace != null
+            ? exception.stackTrace!
+            : StackTrace.current);
+
+    final String? stackStr = _normalizeStackTrace(exception, effectiveStack);
 
     final Map<String, dynamic> payload = {};
 
@@ -117,19 +122,39 @@ class AppambitSdk {
     if (properties != null && properties.isNotEmpty) {
       payload['properties'] = properties;
     }
-    if (classFqn != null && classFqn.isNotEmpty) {
-      payload['classFqn'] = classFqn;
+
+    final _CallSite inferred = _inferCallSite(effectiveStack);
+
+    final String? finalClassFqn = (classFqn != null && classFqn.isNotEmpty)
+        ? classFqn
+        : inferred.classFqn;
+
+    final String? finalFileName = (fileName != null && fileName.isNotEmpty)
+        ? fileName
+        : inferred.filePath;
+
+    final int? finalLine = lineNumber ?? inferred.lineNumber;
+
+    if (finalClassFqn != null && finalClassFqn.isNotEmpty) {
+      payload['classFqn'] = finalClassFqn;
     }
-    if (fileName != null && fileName.isNotEmpty) {
-      payload['fileName'] = fileName;
+    if (finalFileName != null && finalFileName.isNotEmpty) {
+      payload['fileName'] = finalFileName;
     }
-    if (lineNumber != null) {
-      payload['lineNumber'] = lineNumber;
+    if (finalLine != null) {
+      payload['lineNumber'] = finalLine;
     }
 
     if (payload.isEmpty) return Future.value();
 
-    return AppAmbitSdkFlutterPlatform.instance.logError(payload);
+    final bool userProvidedMessage = message != null && message.isNotEmpty;
+    if (userProvidedMessage) {
+      return AppAmbitSdkFlutterPlatform.instance.logErrorMessage(payload);
+    } else if ((exception != null) || (stackStr != null && stackStr.isNotEmpty)) {
+      return AppAmbitSdkFlutterPlatform.instance.logError(payload);
+    } else {
+      return Future.value();
+    }
   }
 
   /// Best-effort conversion to human-friendly string.
@@ -160,12 +185,7 @@ class AppambitSdk {
       try { originalFlutterOnError?.call(details); } catch (_) {}
       try { FlutterError.presentError(details); } catch (_) {}
     };
-
-    ui.PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
-      AppambitSdk.logError(exception: error, stackTrace: stack);
-      return true;
-    };
-
+    
     _isolateErrorPort = RawReceivePort((dynamic pair) {
       final List<dynamic> errorAndStack = pair as List<dynamic>;
       final Object error = errorAndStack.first;
@@ -174,4 +194,69 @@ class AppambitSdk {
     });
     Isolate.current.addErrorListener(_isolateErrorPort!.sendPort);
   }
+}
+
+class _CallSite {
+  final String? classFqn;
+  final String? filePath;
+  final int? lineNumber;
+  const _CallSite({this.classFqn, this.filePath, this.lineNumber});
+}
+
+_CallSite _inferCallSite(StackTrace stack) {
+  final lines = stack.toString().split('\n');
+  final skipPrefixes = <String>[
+    'dart:',
+    'package:flutter/',
+    'package:flutter_test/',
+    'package:appambit_sdk_flutter/',
+    'package:appambit_sdk/',
+  ];
+
+  for (final raw in lines) {
+    final line = raw.trim();
+    if (line.isEmpty) continue;
+    final m = RegExp(r'^\#\d+\s+([^\s]+)\s+\((.+):(\d+)(?::\d+)?\)$').firstMatch(line);
+    if (m == null) continue;
+    final symbol = m.group(1) ?? '';
+    final loc = m.group(2) ?? '';
+    final ln = int.tryParse(m.group(3) ?? '');
+    bool skip = false;
+    for (final p in skipPrefixes) {
+      if (loc.startsWith(p)) { skip = true; break; }
+    }
+    if (skip) continue;
+    if (symbol.startsWith('AppambitSdk.') || symbol.contains('.logError')) continue;
+    final filePath = _normalizePath(loc);
+    final inferredClass = _symbolToClass(symbol) ?? _fallbackClassFromPath(filePath);
+    return _CallSite(classFqn: inferredClass, filePath: filePath, lineNumber: ln);
+  }
+
+  return const _CallSite();
+}
+
+String _normalizePath(String loc) {
+  if (loc.startsWith('file:')) {
+    try { return Uri.parse(loc).toFilePath(); } catch (_) { return loc; }
+  }
+  return loc;
+}
+
+String? _symbolToClass(String symbol) {
+  if (symbol.contains('.')) {
+    final head = symbol.split('.').first;
+    final cleaned = head.replaceAll('<anonymous closure>', '').trim();
+    if (cleaned.isNotEmpty) return cleaned;
+  }
+  return null;
+}
+
+String? _fallbackClassFromPath(String path) {
+  final slash = path.lastIndexOf('/');
+  final back = path.lastIndexOf('\\');
+  final idx = slash > back ? slash : back;
+  final base = idx >= 0 ? path.substring(idx + 1) : path;
+  final dot = base.lastIndexOf('.');
+  final name = dot > 0 ? base.substring(0, dot) : base;
+  return name.isNotEmpty ? name : null;
 }

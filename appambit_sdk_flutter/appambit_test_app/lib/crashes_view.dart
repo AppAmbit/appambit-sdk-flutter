@@ -57,7 +57,8 @@ class _CrashesViewState extends State<CrashesView> {
   }
 
   Future<void> _onTestLog() async {
-    await AppambitSdk.logError(message: 'Default test log error', properties: <String, String>{'user_id': '1'});
+    await AppambitSdk.logError(message: 'Test Log Error', properties: <String, String>{'user_id': '1'});
+    await _showInfo("LogError sent");
   }
 
   Future<void> _sendTestError() async {

@@ -54,13 +54,8 @@ abstract class AppAmbitSdkFlutterPlatform extends PlatformInterface {
   Future<void> logError(Map<String, dynamic>? payload) {
     throw UnimplementedError('logError() not implemented');
   }
-  Future<void> logErrorMessage(
-      String message, {
-        Map<String,String>? properties,
-        String? classFqn,
-        String? fileName,
-        int? lineNumber,
-      }) {
+
+  Future<void> logErrorMessage(Map<String, dynamic> payload) {
     throw UnimplementedError('logErrorMessage() not implemented');
   }
 }
