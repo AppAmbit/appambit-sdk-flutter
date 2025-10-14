@@ -34,7 +34,7 @@ jobs:
         run: flutter pub get
 
       - name: Create keystore and key.properties
-        working-directory: appambit_test_app/android
+        working-directory: appambit_sdk_flutter/appambit_test_app/android
         run: |
           echo "$KEYSTORE_BASE64" | base64 --decode > ${{ env.KEYSTORE_FILE_NAME }}
 
@@ -51,7 +51,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Build release APK
-        working-directory: appambit_test_app
+        working-directory: appambit_sdk_flutter/appambit_test_app
         run: flutter build apk --release
 
       - name: Upload release APK
