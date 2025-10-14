@@ -11,7 +11,7 @@ jobs:
       KEYSTORE_FILE_NAME: appambit.keystore
       APK_NAME: app-release.apk
       ARTIFACT_NAME: appambit-test-app-release-apk
-      APK_PATH: appambit_test_app/build/app/outputs/flutter-apk/app-release.apk
+      APK_PATH: appambit_sdk_flutter/appambit_test_app/build/app/outputs/flutter-apk/app-release.apk
 
     steps:
       - name: Checkout repository
