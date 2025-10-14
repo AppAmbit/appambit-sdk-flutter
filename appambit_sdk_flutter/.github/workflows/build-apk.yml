@@ -1,0 +1,55 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ "main", "feature/cicd-flutter-gh-bb-azure" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      KEYSTORE_FILE_NAME: appambit.keystore
+      APK_NAME: app-release.apk
+      ARTIFACT_NAME: appambit-test-app-release-apk
+      APK_PATH: appambit_test_app/build/app/outputs/flutter-apk/app-release.apk
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.4'
+
+      - name: Get dependencies
+        working-directory: appambit_test_app
+        run: flutter pub get
+
+      - name: Create keystore and key.properties
+        working-directory: appambit_test_app/android
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 --decode > ${{ env.KEYSTORE_FILE_NAME }}
+
+          cat <<EOF > key.properties
+          keyAlias=${KEY_ALIAS}
+          keyPassword=${KEY_PASSWORD}
+          storeFile=../${{ env.KEYSTORE_FILE_NAME }}
+          storePassword=${KEYSTORE_PASSWORD}
+          EOF
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Build release APK
+        working-directory: appambit_test_app
+        run: flutter build apk --release
+
+      - name: Upload release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: ${{ env.APK_PATH }}
