@@ -17,13 +17,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Cache Flutter SDK
+        uses: actions/cache@v3
+        with:
+          path: ~/.flutter
+          key: flutter-sdk-${{ runner.os }}-v3.35.4
+          restore-keys: |
+            flutter-sdk-${{ runner.os }}-
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.35.4'
 
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            appambit-sdk-flutter/appambit_test_app/.pub-cache
+            ~/.pub-cache
+          key: flutter-deps-${{ hashFiles('**/pubspec.yaml') }}
+
       - name: Get dependencies
-        working-directory: appambit_test_app
+        working-directory: appambit-sdk-flutter/appambit_test_app
         run: flutter pub get
 
       - name: Create keystore and key.properties
