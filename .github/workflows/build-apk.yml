@@ -17,30 +17,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Cache Flutter SDK
-        uses: actions/cache@v3
+      - name: Setup java
+        uses: actions/setup-java@v3
         with:
-          path: ~/.flutter
-          key: flutter-sdk-${{ runner.os }}-v3.35.4
-          restore-keys: |
-            flutter-sdk-${{ runner.os }}-
+          distribution: 'zulu'
+          java-version: "18.x"
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
+          channel: 'stable'
           flutter-version: '3.35.4'
 
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            appambit-sdk-flutter/appambit_test_app/.pub-cache
-            ~/.pub-cache
-          key: flutter-deps-${{ hashFiles('**/pubspec.yaml') }}
-
       - name: Get dependencies
-        working-directory: appambit-sdk-flutter/appambit_test_app
+        working-directory: appambit_test_app
         run: flutter pub get
+
+      - name: Check for lints
+        run: |
+          flutter analyze
+
+      - name: Run all tests
+        run: |
+          flutter test
 
       - name: Create keystore and key.properties
         working-directory: appambit_test_app/android
