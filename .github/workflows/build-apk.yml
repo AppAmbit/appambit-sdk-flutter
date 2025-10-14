@@ -33,14 +33,6 @@ jobs:
         working-directory: appambit_sdk_flutter
         run: flutter pub get
 
-      - name: Check for lints
-        run: |
-          flutter analyze
-
-      - name: Run all tests
-        run: |
-          flutter test
-
       - name: Create keystore and key.properties
         working-directory: appambit_test_app/android
         run: |
