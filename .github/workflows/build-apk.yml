@@ -30,7 +30,6 @@ jobs:
           flutter-version: '3.35.4'
 
       - name: Get dependencies
-        working-directory: appambit_test_app
         run: flutter pub get
 
       - name: Check for lints
