@@ -1,23 +1,32 @@
 name: Build APK
 
 on:
-  push:
-    branches: [ "main", "feature/cicd-flutter-gh-bb-azure" ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     env:
       KEYSTORE_FILE_NAME: appambit.keystore
       ARTIFACT_NAME: app_appambit_testapp
       APK_PATH: appambit_sdk_flutter/appambit_test_app/build/app/outputs/flutter-apk/app-release.apk
       ROOT_DIR: appambit_sdk_flutter
-      TYPE_RELEASE: alpha
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Validate and extract release type from branch name
+        run: |
+          FULL_BRANCH="${GITHUB_REF#refs/heads/}"
+          if [[ "$FULL_BRANCH" == alpha/* || "$FULL_BRANCH" == beta/* || "$FULL_BRANCH" == production/* ]]; then
+            TYPE_RELEASE="${FULL_BRANCH%%/*}"
+            echo "TYPE_RELEASE=$TYPE_RELEASE" >> $GITHUB_ENV
+          else
+            echo "Branch '$FULL_BRANCH' does not start with alpha/, beta/ or production/. Exiting..."
+            exit 1
+          fi
 
       - name: Setup java
         uses: actions/setup-java@v3
