@@ -11,7 +11,7 @@ jobs:
 
     env:
       IOS_INFO_PLIST: ExportOptions.plist
-      BUNDLE_IDENTIFIER: com.appambit.testapp
+      BUNDLE_IDENTIFIER: com.AppAmbit.TestApp
       ARTIFACT_NAME: appambit-test-app-release-ipa
 
     steps:
@@ -96,4 +96,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARTIFACT_NAME }}
-          path: appambit_sdk_flutter/appambit_test_app/build/ios/ipa/
+          path: appambit_sdk_flutter/appambit_test_app/build/ios/ipa/*.ipa
