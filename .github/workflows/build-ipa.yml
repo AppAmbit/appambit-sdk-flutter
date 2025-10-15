@@ -24,68 +24,65 @@ jobs:
           channel: 'stable'
           flutter-version: '3.35.4'
 
-      - name: Reset Keychain Environment
-        run: |
-          security delete-keychain build.keychain || true
-          security create-keychain -p "" build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p "" build.keychain
-          security set-keychain-settings -t 3600 -l build.keychain
-      
-      - name: Decode and install P12 certificate
+      - name: Install certificate and provisioning profile
+        shell: bash
         env:
-          P12_CERTIFICATE_BASE64: ${{ secrets.IOS_P12_CERTIFICATE_BASE64 }}
-          P12_PASSWORD: ${{ secrets.IOS_APPLE_P12_PASSWORD }}
+          IOS_BUILD_CERTIFICATE_BASE64: ${{ secrets.IOS_P12_CERTIFICATE_BASE64 }}
+          IOS_BUILD_CERTIFICATE_PASSWORD: ${{ secrets.IOS_APPLE_P12_PASSWORD }}
+          IOS_MOBILE_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+          IOS_GITHUB_KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
         run: |
-          echo "$P12_CERTIFICATE_BASE64" | base64 --decode > certificate.p12
-          security import certificate.p12 -k build.keychain -P "$P12_PASSWORD" -A
-          security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          PP_PATH=$RUNNER_TEMP/temp.mobileprovision
 
-      - name: Decode and install Provisioning Profile
-        env:
-          PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
-        run: |
-          echo "$PROVISIONING_PROFILE_BASE64" | base64 --decode > profile.mobileprovision
+          echo -n "$IOS_BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+          echo -n "$IOS_MOBILE_PROVISIONING_PROFILE_BASE64" | base64 --decode -o $PP_PATH
+
+          security create-keychain -p "$IOS_GITHUB_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$IOS_GITHUB_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+          security import $CERTIFICATE_PATH -P "$IOS_BUILD_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security find-identity -v
+
+          UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(/usr/bin/security cms -D -i $PP_PATH))
+
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          UUID=$(security cms -D -i profile.mobileprovision | plutil -extract UUID xml1 -o - - | xmllint --xpath "string(//string)" -)
-          cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
-          echo "UUID=$UUID" >> $GITHUB_ENV
-      
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
+          echo "Provisioning profile UUID: $UUID"
+
       - name: Create ExportOptions.plist file
         working-directory: appambit_sdk_flutter/appambit_test_app/ios
         run: |
           cat > $IOS_INFO_PLIST <<EOF
-            <?xml version="1.0" encoding="UTF-8"?>
-            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-            <plist version="1.0">
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>compileBitcode</key>
+            <true/>
+            <key>method</key>
+            <string>ad-hoc</string>
+            <key>provisioningProfiles</key>
             <dict>
-              <key>compileBitcode</key>
-              <true/>
-              <key>method</key>
-              <string>release-testing</string>
-              <key>provisioningProfiles</key>
-              <dict>
-                <key>{{ env.BUNDLE_IDENTIFIER }}</key>
-                <string>${{ secrets.IOS_ADHOC_PROFILE}}</string>
-              </dict>
-              <key>signingCertificate</key>
-              <string>iPhone Distribution</string>
-              <key>signingStyle</key>
-              <string>manual</string>
-              <key>stripSwiftSymbols</key>
-              <true/>
-              <key>teamID</key>
-              <string>${{ secrets.IOS_APPLE_TEAM_ID }}</string>
-              <key>thinning</key>
-              <string>&lt;none&gt;</string>
+              <key>${{ env.BUNDLE_IDENTIFIER }}</key>
+              <string>${{ secrets.IOS_ADHOC_PROFILE }}</string>
             </dict>
-            </plist>
-            EOF
-
-      - name: Verify ExportOptions.plist
-        working-directory: appambit_sdk_flutter/appambit_test_app/ios
-        run: |
-          ls -l
+            <key>signingCertificate</key>
+            <string>iPhone Distribution</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>stripSwiftSymbols</key>
+            <true/>
+            <key>teamID</key>
+            <string>${{ secrets.IOS_APPLE_TEAM_ID }}</string>
+            <key>thinning</key>
+            <string>&lt;none&gt;</string>
+          </dict>
+          </plist>
+          EOF
 
       - name: Get dependencies
         working-directory: appambit_sdk_flutter
@@ -99,4 +96,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARTIFACT_NAME }}
-          path: appambit_sdk_flutter/appambit_test_app/build/ios/ipa/${{ env.IOS_APP_NAME }}
+          path: appambit_sdk_flutter/appambit_test_app/build/ios/ipa/
