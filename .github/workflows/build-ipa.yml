@@ -51,10 +51,9 @@ jobs:
           cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
           echo "UUID=$UUID" >> $GITHUB_ENV
       
-      - name: Create ExportOption.plist file
+      - name: Create ExportOptions.plist file
         working-directory: appambit_sdk_flutter/appambit_test_app/ios
         run: |
-          cd ${{ github.workspace }}
           cat > $IOS_INFO_PLIST <<EOF
             <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -82,6 +81,11 @@ jobs:
             </dict>
             </plist>
             EOF
+
+      - name: Verify ExportOptions.plist
+        working-directory: appambit_sdk_flutter/appambit_test_app/ios
+        run: |
+          ls -l
 
       - name: Get dependencies
         working-directory: appambit_sdk_flutter
