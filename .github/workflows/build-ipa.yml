@@ -83,13 +83,13 @@ jobs:
             </plist>
             EOF
 
-      - name: Install CocoaPods dependencies
-        working-directory: appambit_sdk_flutter/appambit_test_app/ios
-        run: pod install
-
       - name: Get dependencies
         working-directory: appambit_sdk_flutter
         run: flutter pub get
+
+      - name: Install CocoaPods dependencies
+        working-directory: appambit_sdk_flutter/appambit_test_app/ios
+        run: pod install
 
       - name: Build release IPA
         working-directory: appambit_sdk_flutter/appambit_test_app
