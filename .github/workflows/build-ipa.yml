@@ -110,5 +110,5 @@ jobs:
       - name: Upload renamed IPA
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.ARTIFACT_NAME }}
+          name: ${{ env.NEW_IPA_NAME }}
           path: ${{ env.NEW_IPA_PATH }}
