@@ -89,7 +89,7 @@ jobs:
 
       - name: Build release IPA
         working-directory: appambit_sdk_flutter/appambit_test_app
-        run: flutter build ipa --release --export-options-plist ios/ExportOption.plist
+        run: flutter build ipa --release --export-options-plist ios/$IOS_INFO_PLIST
 
       - name: Upload release IPA
         uses: actions/upload-artifact@v4
