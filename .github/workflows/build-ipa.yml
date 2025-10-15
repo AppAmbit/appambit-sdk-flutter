@@ -1,8 +1,7 @@
 name: Build IPA
 
 on:
-  push:
-    branches: [ "main", "feature/cicd-flutter-gh-bb-azure" ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -14,12 +13,23 @@ jobs:
       BUNDLE_IDENTIFIER: com.AppAmbit.TestApp
       ARTIFACT_NAME: appambit-test-app-release-ipa
       IPA_NAME: app_appambit_testapp
-      TYPE_RELEASE: alpha
       ROOT_DIR: appambit_sdk_flutter
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Validate and extract release type from branch name
+        run: |
+          FULL_BRANCH="${GITHUB_REF#refs/heads/}"
+
+          if [[ "$FULL_BRANCH" == alpha/* || "$FULL_BRANCH" == beta/* || "$FULL_BRANCH" == production/* ]]; then
+            TYPE_RELEASE="${FULL_BRANCH%%/*}"
+            echo "TYPE_RELEASE=$TYPE_RELEASE" >> $GITHUB_ENV
+          else
+            echo "Branch '$FULL_BRANCH' does not start with alpha/, beta/ or production/. Exiting..."
+            exit 1
+          fi
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
