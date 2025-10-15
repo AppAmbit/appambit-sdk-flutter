@@ -13,6 +13,9 @@ jobs:
       IOS_INFO_PLIST: ExportOptions.plist
       BUNDLE_IDENTIFIER: com.AppAmbit.TestApp
       ARTIFACT_NAME: appambit-test-app-release-ipa
+      IPA_NAME: app_appambit_testapp
+      TYPE_RELEASE: alpha
+      ROOT_DIR: appambit_sdk_flutter
 
     steps:
       - name: Checkout repository
@@ -54,7 +57,7 @@ jobs:
           echo "Provisioning profile UUID: $UUID"
 
       - name: Create ExportOptions.plist file
-        working-directory: appambit_sdk_flutter/appambit_test_app/ios
+        working-directory: ${{ env.ROOT_DIR }}/appambit_test_app/ios
         run: |
           cat > $IOS_INFO_PLIST <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
@@ -85,15 +88,27 @@ jobs:
           EOF
 
       - name: Get dependencies
-        working-directory: appambit_sdk_flutter
+        working-directory: ${{ env.ROOT_DIR }}
         run: flutter pub get
 
       - name: Build release IPA
-        working-directory: appambit_sdk_flutter/appambit_test_app
+        working-directory: ${{ env.ROOT_DIR }}/appambit_test_app
         run: flutter build ipa --release --export-options-plist ios/${{ env.IOS_INFO_PLIST }}
 
-      - name: Upload release IPA
+      - name: Rename IPA output
+        run: |
+          ORIGINAL_IPA=$(find ${{ env.ROOT_DIR }}/appambit_test_app/build/ios/ipa -name "*.ipa" | head -n 1)
+          echo "IPA founded: $ORIGINAL_IPA"
+          DIR=$(dirname "$ORIGINAL_IPA")
+          mkdir -p $RUNNER_TEMP/artifact
+          NEW_IPA_NAME="${{ env.IPA_NAME }}_${{ env.TYPE_RELEASE }}.ipa"
+          cp "$ORIGINAL_IPA" "$RUNNER_TEMP/artifact/$NEW_IPA_NAME"
+          echo "IPA renamed: $NEW_IPA_NAME"
+          echo "Final IPA path: $RUNNER_TEMP/artifact/$NEW_IPA_NAME"
+          echo "NEW_IPA_PATH=$RUNNER_TEMP/artifact/$NEW_IPA_NAME" >> $GITHUB_ENV
+
+      - name: Upload renamed IPA
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARTIFACT_NAME }}
-          path: appambit_sdk_flutter/appambit_test_app/build/ios/ipa/*.ipa
+          path: ${{ env.NEW_IPA_PATH }}
