@@ -1,8 +1,7 @@
 name: Build APK
 
 on:
-  push:
-    branches: [ "main", "feature/cicd-flutter-gh-bb-azure", "develop" ]
+  workflow_dispatch:
 
 jobs:
   build:
