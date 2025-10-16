@@ -78,7 +78,7 @@ public class AppambitSdkFlutterPlugin: NSObject, FlutterPlugin {
       case "didCrashInLastSession": CrashesFlutter.didCrashInLastSession(result: result)
       case "generateTestCrash":     CrashesFlutter.generateTestCrash(result: result)
       case "logError":              CrashesFlutter.logError(args: call.arguments, result: result)
-      case "logErrorMessage":       CrashesFlutter.logErrorMessage(args: call.arguments, result: result)   // overload con message
+      case "logErrorMessage":       CrashesFlutter.logErrorMessage(args: call.arguments, result: result)
       default:
         result(FlutterMethodNotImplemented)
       }

@@ -11,6 +11,9 @@ class AppambitSdk {
   static bool _hooksInstalled = false;
   static RawReceivePort? _isolateErrorPort;
 
+  static final Map<int, int> _recentErrorDigests = <int, int>{};
+  static const int _dedupeTtlMs = 3000;
+
   static void _ensureRegistered() {
     _impl.registerMethodChannelImplementation();
   }
@@ -34,19 +37,19 @@ class AppambitSdk {
     return AppAmbitSdkFlutterPlatform.instance.setEmail(email);
   }
 
-  /// Clears the current auth token (forces a refresh on next request if applicable).
+  /// Clears the current auth token
   static Future<void> clearToken() {
     _ensureRegistered();
     return AppAmbitSdkFlutterPlatform.instance.clearToken();
   }
 
-  /// Starts a manual analytics session (when manual sessions are enabled).
+  /// Starts a manual analytics session
   static Future<void> startSession() {
     _ensureRegistered();
     return AppAmbitSdkFlutterPlatform.instance.startSession();
   }
 
-  /// Ends the current manual analytics session (when manual sessions are enabled).
+  /// Ends the current session
   static Future<void> endSession() {
     _ensureRegistered();
     return AppAmbitSdkFlutterPlatform.instance.endSession();
@@ -76,7 +79,7 @@ class AppambitSdk {
     return AppAmbitSdkFlutterPlatform.instance.didCrashInLastSession();
   }
 
-  /// Triggers a native crash for testing (use in debug only).
+  /// Triggers a native crash for testing
   static Future<void> generateTestCrash() {
     _ensureRegistered();
     return AppAmbitSdkFlutterPlatform.instance.generateTestCrash();
@@ -85,10 +88,9 @@ class AppambitSdk {
   /// Unified error logger.
   ///
   /// Use ONE API for both use cases:
-  /// - Message-only:     logError(message: "Human readable message")
+  /// - Message-only:     logError(message: "error message")
   /// - Exception/stack:  logError(exception: e, stackTrace: st, properties: {...}, classFqn: ..., fileName: ..., lineNumber: ...)
   ///
-  /// The SDK stringifies `exception` and normalizes `stackTrace` internally.
   static Future<void> logError({
     String? message,
     Object? exception,
@@ -148,6 +150,15 @@ class AppambitSdk {
     if (payload.isEmpty) return Future.value();
 
     final bool userProvidedMessage = message != null && message.isNotEmpty;
+
+    final bool hasExceptionLike = (exception != null) || (stackStr != null && stackStr.isNotEmpty);
+    if (hasExceptionLike) {
+      final int digest = _computeDigest(exception: exception, message: messageStr, stackStr: stackStr);
+      if (_isDuplicateDigest(digest)) {
+        return Future.value();
+      }
+    }
+
     if (userProvidedMessage) {
       return AppAmbitSdkFlutterPlatform.instance.logErrorMessage(payload);
     } else if ((exception != null) || (stackStr != null && stackStr.isNotEmpty)) {
@@ -157,7 +168,7 @@ class AppambitSdk {
     }
   }
 
-  /// Best-effort conversion to human-friendly string.
+
   static String? _stringify(Object? value) {
     if (value == null) return null;
     try {
@@ -167,7 +178,7 @@ class AppambitSdk {
     }
   }
 
-  /// Prefer the explicit param; otherwise pull from `Error.stackTrace` when available.
+
   static String? _normalizeStackTrace(Object? exception, StackTrace? stackTrace) {
     final StackTrace? st = stackTrace ?? (exception is Error ? exception.stackTrace : null);
     return st?.toString();
@@ -185,7 +196,12 @@ class AppambitSdk {
       try { originalFlutterOnError?.call(details); } catch (_) {}
       try { FlutterError.presentError(details); } catch (_) {}
     };
-    
+
+    ui.PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+      AppambitSdk.logError(exception: error, stackTrace: stack);
+      return true;
+    };
+
     _isolateErrorPort = RawReceivePort((dynamic pair) {
       final List<dynamic> errorAndStack = pair as List<dynamic>;
       final Object error = errorAndStack.first;
@@ -193,6 +209,21 @@ class AppambitSdk {
       AppambitSdk.logError(exception: error, stackTrace: stack);
     });
     Isolate.current.addErrorListener(_isolateErrorPort!.sendPort);
+  }
+
+  static int _computeDigest({Object? exception, String? message, String? stackStr}) {
+    final String a = exception?.runtimeType.toString() ?? '';
+    final String b = (exception?.toString() ?? message ?? '').trim();
+    final String c = (stackStr ?? '').split('\n').take(20).join('|');
+    return Object.hashAll([a, b, c]);
+  }
+
+  static bool _isDuplicateDigest(int d) {
+    final int now = DateTime.now().millisecondsSinceEpoch;
+    _recentErrorDigests.removeWhere((_, t) => (now - t) > _dedupeTtlMs);
+    final bool seen = _recentErrorDigests.containsKey(d);
+    if (!seen) _recentErrorDigests[d] = now;
+    return seen;
   }
 }
 

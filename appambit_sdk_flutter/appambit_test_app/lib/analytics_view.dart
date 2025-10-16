@@ -22,6 +22,11 @@ class _AnalyticsViewState extends State<AnalyticsView> {
     );
   }
 
+  void _toast(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
   Widget _blueButton(String label, VoidCallback onPressed) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -70,18 +75,37 @@ class _AnalyticsViewState extends State<AnalyticsView> {
     await _showInfo('5 events and 5 errors sent');
   }
 
-  Future<void> _startSession() async => AppambitSdk.startSession();
-  Future<void> _endSession() async => AppambitSdk.endSession();
-  Future<void> _invalidateToken() async => AppambitSdk.clearToken();
-  Future<void> _sendButtonClickedEvent() async =>
-      AppambitSdk.trackEvent('ButtonClicked', <String, String>{'Count': '41'});
-  Future<void> _sendDefaultEvent() async => AppambitSdk.generateTestEvent();
+  Future<void> _startSession() async {
+    await AppambitSdk.startSession();
+    _toast('Session started');
+  }
+
+  Future<void> _endSession() async {
+    await AppambitSdk.endSession();
+    _toast('Session ended');
+  }
+
+  Future<void> _invalidateToken() async {
+    await AppambitSdk.clearToken();
+    _toast('Token invalidated');
+  }
+
+  Future<void> _sendButtonClickedEvent() async {
+    await AppambitSdk.trackEvent('ButtonClicked', <String, String>{'Count': '41'});
+    _toast('Event sent');
+  }
+
+  Future<void> _sendDefaultEvent() async {
+    await AppambitSdk.generateTestEvent();
+    _toast('Default test event sent');
+  }
 
   Future<void> _onClickedTestLimitsEvent() async {
     final c300 = _repeatToLength('1234567890', 300);
     final c300b = _repeatToLength('1234567890', 301);
     final props = <String, String>{c300: c300, c300b: c300b};
     await AppambitSdk.trackEvent(c300, props);
+    _toast('Max-300-Length event sent');
   }
 
   Future<void> _onClickedTestMaxPropertiesEven() async {
@@ -113,6 +137,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
       '25': '25',
     };
     await AppambitSdk.trackEvent('TestMaxProperties', props);
+    _toast('Max-20-Properties event sent');
   }
 
   @override

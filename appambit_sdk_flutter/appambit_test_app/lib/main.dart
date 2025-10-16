@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:appambit_sdk_flutter_example/analytics_view.dart';
 import 'package:appambit_sdk_flutter_example/crashes_view.dart';
 import 'package:flutter/material.dart';
