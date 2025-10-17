@@ -1,0 +1,77 @@
+name: Android Flutter APK
+
+trigger: none
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+- group: ANDROID VARIABLES
+- name: APK_NAME
+  value: "app_appambit_testapp"
+- name: PROJECT_PATH
+  value: "appambit_sdk_flutter/appambit_test_app"
+- name: ARTIFACTS_DIR
+  value: "artifacts"
+- name: KEYSTORE_NAME
+  value: 'appambit.keystore'
+
+jobs:
+- job: BuildFlutterAPK
+  displayName: 'Build Flutter APK'
+  timeoutInMinutes: 15
+  steps:
+    - script: |
+        echo "Current branch: $(Build.SourceBranch)"
+        FULL_BRANCH="$(Build.SourceBranch)"
+        FULL_BRANCH="${FULL_BRANCH#refs/heads/}"
+        echo "Sanitized branch: $FULL_BRANCH"
+
+        if [[ "$FULL_BRANCH" == alpha/* || "$FULL_BRANCH" == beta/* || "$FULL_BRANCH" == production/* ]]; then
+          TYPE_RELEASE="${FULL_BRANCH%%/*}"
+          echo "##vso[task.setvariable variable=TYPE_RELEASE]$TYPE_RELEASE"
+        else
+          echo "Branch must start with alpha/, beta/ or production/. Exiting..."
+          exit 1
+        fi
+      displayName: "Determine release type"
+
+    - script: |
+        git clone https://github.com/flutter/flutter.git --branch stable --depth 1
+        export PATH="$PATH:`pwd`/flutter/bin"
+        flutter doctor -v
+      displayName: "Install Flutter SDK"
+
+    - task: DownloadSecureFile@1
+      name: downloadKeystore
+      inputs:
+        secureFile: '$(KEYSTORE_NAME)'
+
+    - script: |
+        cd $(PROJECT_PATH)
+
+        cp $(downloadKeystore.secureFilePath) android/${KEYSTORE_NAME}
+
+        echo "storePassword=$ANDROID_KEYSTORE_PASSWORD" > android/key.properties
+        echo "keyPassword=$KEY_PASSWORD" >> android/key.properties
+        echo "keyAlias=$ANDROID_KEYSTORE_ALIAS" >> android/key.properties
+        echo "storeFile=../${KEYSTORE_NAME}" >> android/key.properties
+      displayName: "Setup keystore"
+
+    - script: |
+        export PATH="$PATH:`pwd`/flutter/bin"
+        cd $(PROJECT_PATH)
+        flutter pub get
+        flutter build apk --release
+
+        ORIGINAL_APK=$(find build/app/outputs/flutter-apk -name "*.apk" | head -n 1)
+        mkdir -p $(ARTIFACTS_DIR)
+        NEW_APK_NAME="${APK_NAME}_$(TYPE_RELEASE).apk"
+        cp "$ORIGINAL_APK" "$(ARTIFACTS_DIR)/$NEW_APK_NAME"
+      displayName: "Build Flutter APK"
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: "$(PROJECT_PATH)/$(ARTIFACTS_DIR)"
+        ArtifactName: "apk"
+        publishLocation: "Container"

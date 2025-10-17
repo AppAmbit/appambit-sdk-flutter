@@ -1,0 +1,105 @@
+name: iOS Flutter IPA
+
+trigger: none
+
+pool:
+  vmImage: macos-latest
+
+variables:
+- group: IOS VARIABLES
+- name: IPA_NAME
+  value: "app_appambit_testapp"
+- name: ROOT_DIR
+  value: "appambit_sdk_flutter"
+- name: BUNDLE_IDENTIFIER
+  value: "com.AppAmbit.TestApp"
+- name: IOS_INFO_PLIST
+  value: "ExportOptions.plist"
+
+jobs:
+- job: BuildFlutterIPA
+  displayName: 'Build Flutter IPA'
+  timeoutInMinutes: 15
+  steps:
+    - script: |
+        echo "Current branch: $(Build.SourceBranch)"
+        FULL_BRANCH="$(Build.SourceBranch)"
+        FULL_BRANCH="${FULL_BRANCH#refs/heads/}"
+        echo "Sanitized branch: $FULL_BRANCH"
+
+        if [[ "$FULL_BRANCH" == alpha/* || "$FULL_BRANCH" == beta/* || "$FULL_BRANCH" == production/* ]]; then
+          TYPE_RELEASE="${FULL_BRANCH%%/*}"
+          echo "##vso[task.setvariable variable=TYPE_RELEASE]$TYPE_RELEASE"
+        else
+          echo "Branch must start with alpha/, beta/ or production/. Exiting..."
+          exit 1
+        fi
+      displayName: "Determine release type"
+
+    - script: |
+        git clone https://github.com/flutter/flutter.git --branch stable --depth 1
+        export PATH="$PATH:`pwd`/flutter/bin"
+        flutter doctor -v
+      displayName: "Install Flutter SDK"
+
+    - task: InstallAppleCertificate@2
+      displayName: "Install P12 Certificate"
+      inputs:
+        certSecureFile: '$(IOS_P12_CERTIFICATE)'
+        certPwd: '$(IOS_APPLE_P12_PASSWORD)'
+
+    - task: InstallAppleProvisioningProfile@1
+      displayName: "Install provisioning profile"
+      inputs:
+        provProfileSecureFile: '$(IOS_PROVISIONING_PROFILE_3)'
+
+    - script: |
+        cd $(ROOT_DIR)/appambit_test_app/ios
+        cat > $(IOS_INFO_PLIST) <<EOF
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+          <key>compileBitcode</key>
+          <true/>
+          <key>method</key>
+          <string>ad-hoc</string>
+          <key>provisioningProfiles</key>
+          <dict>
+            <key>$(BUNDLE_IDENTIFIER)</key>
+            <string>$(IOS_ADHOC_PROFILE)</string>
+          </dict>
+          <key>signingCertificate</key>
+          <string>iPhone Distribution</string>
+          <key>signingStyle</key>
+          <string>manual</string>
+          <key>stripSwiftSymbols</key>
+          <true/>
+          <key>teamID</key>
+          <string>$(IOS_APPLE_TEAM_ID)</string>
+          <key>thinning</key>
+          <string>&lt;none&gt;</string>
+        </dict>
+        </plist>
+        EOF
+      displayName: "Create ExportOptions.plist"
+
+    - script: |
+        export PATH="$PATH:`pwd`/flutter/bin"
+        cd $(ROOT_DIR)/appambit_test_app
+
+        flutter pub get
+
+        flutter build ipa --release --export-options-plist ios/$IOS_INFO_PLIST
+
+        ORIGINAL_IPA=$(find build/ios/ipa -name "*.ipa" | head -n 1)
+        mkdir -p $(Pipeline.Workspace)/artifact
+        NEW_IPA_NAME="${IPA_NAME}_$(TYPE_RELEASE).ipa"
+        cp "$ORIGINAL_IPA" "$(Pipeline.Workspace)/artifact/$NEW_IPA_NAME"
+      displayName: "Build Flutter IPA and prepare artifact"
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: "$(Pipeline.Workspace)/artifact"
+        ArtifactName: "ipa"
+        publishLocation: "Container"
