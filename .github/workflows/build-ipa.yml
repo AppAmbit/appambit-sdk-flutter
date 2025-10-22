@@ -14,28 +14,30 @@ jobs:
       ARTIFACT_NAME: appambit-test-app-release-ipa
       IPA_NAME: app_appambit_testapp
       ROOT_DIR: appambit_sdk_flutter
+      TEST_PROJECT_NAME: appambit_test_app
+      FLUTTER_VERSION: '3.35.4'
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Validate and extract release type from branch name
-        run: |
-          FULL_BRANCH="${GITHUB_REF#refs/heads/}"
-
-          if [[ "$FULL_BRANCH" == alpha/* || "$FULL_BRANCH" == beta/* || "$FULL_BRANCH" == production/* ]]; then
-            TYPE_RELEASE="${FULL_BRANCH%%/*}"
-            echo "TYPE_RELEASE=$TYPE_RELEASE" >> $GITHUB_ENV
-          else
-            echo "Branch '$FULL_BRANCH' does not start with alpha/, beta/ or production/. Exiting..."
-            exit 1
-          fi
+#      - name: Validate and extract release type from branch name
+#        run: |
+#          FULL_BRANCH="${GITHUB_REF#refs/heads/}"
+#
+#          if [[ "$FULL_BRANCH" == alpha/* || "$FULL_BRANCH" == beta/* || "$FULL_BRANCH" == production/* ]]; then
+#            TYPE_RELEASE="${FULL_BRANCH%%/*}"
+#            echo "TYPE_RELEASE=$TYPE_RELEASE" >> $GITHUB_ENV
+#          else
+#            echo "Branch '$FULL_BRANCH' does not start with alpha/, beta/ or production/. Exiting..."
+#            exit 1
+#          fi
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          flutter-version: '3.35.4'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: Install certificate and provisioning profile
         shell: bash
@@ -67,7 +69,7 @@ jobs:
           echo "Provisioning profile UUID: $UUID"
 
       - name: Create ExportOptions.plist file
-        working-directory: ${{ env.ROOT_DIR }}/appambit_test_app/ios
+        working-directory: ${{ env.ROOT_DIR }}/{{ env.TEST_PROJECT_NAME }}/ios
         run: |
           cat > $IOS_INFO_PLIST <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
@@ -102,12 +104,12 @@ jobs:
         run: flutter pub get
 
       - name: Build release IPA
-        working-directory: ${{ env.ROOT_DIR }}/appambit_test_app
+        working-directory: ${{ env.ROOT_DIR }}/{{ env.TEST_PROJECT_NAME }}
         run: flutter build ipa --release --export-options-plist ios/${{ env.IOS_INFO_PLIST }}
 
       - name: Rename IPA output
         run: |
-          ORIGINAL_IPA=$(find ${{ env.ROOT_DIR }}/appambit_test_app/build/ios/ipa -name "*.ipa" | head -n 1)
+          ORIGINAL_IPA=$(find ${{ env.ROOT_DIR }}/{{ env.TEST_PROJECT_NAME }}/build/ios/ipa -name "*.ipa" | head -n 1)
           echo "IPA founded: $ORIGINAL_IPA"
           DIR=$(dirname "$ORIGINAL_IPA")
           mkdir -p $RUNNER_TEMP/artifact

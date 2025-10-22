@@ -15,6 +15,8 @@ variables:
   value: "com.AppAmbit.TestApp"
 - name: IOS_INFO_PLIST
   value: "ExportOptions.plist"
+- name: TEST_PROJECT_NAME
+  value: "appambit_test_app"
 
 jobs:
 - job: BuildFlutterIPA
@@ -54,7 +56,7 @@ jobs:
         provProfileSecureFile: '$(IOS_PROVISIONING_PROFILE_3)'
 
     - script: |
-        cd $(ROOT_DIR)/appambit_test_app/ios
+        cd $(ROOT_DIR)/$(TEST_PROJECT_NAME)/ios
         cat > $(IOS_INFO_PLIST) <<EOF
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -86,7 +88,7 @@ jobs:
 
     - script: |
         export PATH="$PATH:`pwd`/flutter/bin"
-        cd $(ROOT_DIR)/appambit_test_app
+        cd $(ROOT_DIR)/$(TEST_PROJECT_NAME)
 
         flutter pub get
 

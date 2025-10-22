@@ -11,6 +11,7 @@ pipelines:
           - export APK_NAME="app_appambit_testapp_apk"
           - export PROJECT_PATH="appambit_sdk_flutter/appambit_test_app"
           - export ARTIFACTS_DIR="artifacts"
+          - export TEST_PROJECT_NAME="appambit_test_app"
 
           - export FULL_BRANCH="${BITBUCKET_BRANCH}"
           - echo "Current branch - $FULL_BRANCH"
@@ -73,6 +74,7 @@ pipelines:
           - export BUNDLE_IDENTIFIER="com.AppAmbit.TestApp"
           - export IPA_NAME="app_appambit_testapp_ipa"
           - export ROOT_DIR="appambit_sdk_flutter"
+          - export TEST_PROJECT_NAME="appambit_test_app"
 
           - if [[ "$FULL_BRANCH" == alpha/* || "$FULL_BRANCH" == beta/* || "$FULL_BRANCH" == production/* ]]; then
               export TYPE_RELEASE="${FULL_BRANCH%%/*}";
@@ -101,7 +103,7 @@ pipelines:
           - cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
           - echo "Provisioning profile UUID - $UUID"
 
-          - cd $ROOT_DIR/appambit_test_app/ios
+          - cd $ROOT_DIR/$TEST_PROJECT_NAME/ios
           - |
             cat > $IOS_INFO_PLIST <<EOF
             <?xml version="1.0" encoding="UTF-8"?>
@@ -134,7 +136,7 @@ pipelines:
           - cd $BITBUCKET_CLONE_DIR/$ROOT_DIR
           - flutter pub get
           
-          - cd $BITBUCKET_CLONE_DIR/$ROOT_DIR/appambit_test_app
+          - cd $BITBUCKET_CLONE_DIR/$ROOT_DIR/$TEST_PROJECT_NAME
           - flutter build ipa --release --export-options-plist ios/$IOS_INFO_PLIST
 
           - ORIGINAL_IPA=$(find build/ios/ipa -name "*.ipa" | head -n 1)
