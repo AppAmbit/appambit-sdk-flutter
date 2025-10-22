@@ -70,7 +70,7 @@ jobs:
           echo "Provisioning profile UUID: $UUID"
 
       - name: Create ExportOptions.plist file
-        working-directory: ${{ env.ROOT_DIR }}/{{ env.TEST_PROJECT_NAME }}/ios
+        working-directory: ${{ env.ROOT_DIR }}/${{ env.TEST_PROJECT_NAME }}/ios
         run: |
           cat > $IOS_INFO_PLIST <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
@@ -105,12 +105,12 @@ jobs:
         run: flutter pub get
 
       - name: Build release IPA
-        working-directory: ${{ env.ROOT_DIR }}/{{ env.TEST_PROJECT_NAME }}
+        working-directory: ${{ env.ROOT_DIR }}/${{ env.TEST_PROJECT_NAME }}
         run: flutter build ipa --release --export-options-plist ios/${{ env.IOS_INFO_PLIST }}
 
       - name: Rename IPA output
         run: |
-          ORIGINAL_IPA=$(find ${{ env.ROOT_DIR }}/{{ env.TEST_PROJECT_NAME }}/build/ios/ipa -name "*.ipa" | head -n 1)
+          ORIGINAL_IPA=$(find ${{ env.ROOT_DIR }}/${{ env.TEST_PROJECT_NAME }}/build/ios/ipa -name "*.ipa" | head -n 1)
           echo "IPA founded: $ORIGINAL_IPA"
           DIR=$(dirname "$ORIGINAL_IPA")
           mkdir -p $RUNNER_TEMP/artifact

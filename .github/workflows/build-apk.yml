@@ -49,7 +49,7 @@ jobs:
         run: flutter pub get
 
       - name: Create keystore and key.properties
-        working-directory: ${{ env.ROOT_DIR }}/{{ env.TEST_PROJECT_NAME }}/android
+        working-directory: ${{ env.ROOT_DIR }}/${{ env.TEST_PROJECT_NAME }}/android
         run: |
           echo "$KEYSTORE_BASE64" | base64 --decode > ${{ env.KEYSTORE_FILE_NAME }}
 
@@ -66,7 +66,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Build release APK
-        working-directory: ${{ env.ROOT_DIR }}/{{ env.TEST_PROJECT_NAME }}
+        working-directory: ${{ env.ROOT_DIR }}/${{ env.TEST_PROJECT_NAME }}
         run: flutter build apk --release
 
       - name: Rename APK output
