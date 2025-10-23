@@ -84,19 +84,9 @@ class MethodChannelAppambitSdkFlutter extends AppAmbitSdkFlutterPlatform {
   }
 
   @override
-  Future<void> logErrorMessage(
-      String message, {
-        Map<String,String>? properties,
-        String? classFqn,
-        String? fileName,
-        int? lineNumber,
-      }) async {
-    final args = <String, dynamic>{'message': message};
-    if (properties != null) args['properties'] = properties;
-    if (classFqn != null) args['classFqn'] = classFqn;
-    if (fileName != null) args['fileName'] = fileName;
-    if (lineNumber != null) args['lineNumber'] = lineNumber;
-    await _crashes.invokeMethod('logErrorMessage', args);
+  @override
+  Future<void> logErrorMessage(Map<String, dynamic> payload) {
+    return _crashes.invokeMethod<void>('logErrorMessage', payload);
   }
 }
 

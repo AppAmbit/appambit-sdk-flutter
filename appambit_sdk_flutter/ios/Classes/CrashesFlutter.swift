@@ -42,7 +42,7 @@ final class CrashesFlutter {
         if let inner = exc["innerException"] as? String {
           userInfo["innerException"] = inner
         }
-        // Preserve any other useful fields
+
         for (k, v) in exc {
           if userInfo[k] == nil {
             userInfo[k] = v
@@ -65,7 +65,6 @@ final class CrashesFlutter {
         exceptionError = nil
       }
 
-      // Call native API (keeps your original completion mapping)
       Crashes.logError(
         exception: exceptionError,
         properties: properties,

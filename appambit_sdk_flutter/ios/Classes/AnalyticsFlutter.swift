@@ -26,7 +26,7 @@ final class AnalyticsFlutter {
       result(FlutterError(code: "BAD_ARGS", message: "Missing 'email'", details: nil))
       return
     }
-    // Tu implementación actual no llama completion; resolvemos inmediatamente
+
     Analytics.setEmail(email) { _ in }
     result(nil)
   }

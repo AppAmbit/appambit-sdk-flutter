@@ -11,6 +11,9 @@ class AppambitSdk {
   static bool _hooksInstalled = false;
   static RawReceivePort? _isolateErrorPort;
 
+  static final Map<int, int> _recentErrorDigests = <int, int>{};
+  static const int _dedupeTtlMs = 3000;
+
   static void _ensureRegistered() {
     _impl.registerMethodChannelImplementation();
   }
@@ -34,19 +37,19 @@ class AppambitSdk {
     return AppAmbitSdkFlutterPlatform.instance.setEmail(email);
   }
 
-  /// Clears the current auth token (forces a refresh on next request if applicable).
+  /// Clears the current auth token
   static Future<void> clearToken() {
     _ensureRegistered();
     return AppAmbitSdkFlutterPlatform.instance.clearToken();
   }
 
-  /// Starts a manual analytics session (when manual sessions are enabled).
+  /// Starts a manual analytics session
   static Future<void> startSession() {
     _ensureRegistered();
     return AppAmbitSdkFlutterPlatform.instance.startSession();
   }
 
-  /// Ends the current manual analytics session (when manual sessions are enabled).
+  /// Ends the current session
   static Future<void> endSession() {
     _ensureRegistered();
     return AppAmbitSdkFlutterPlatform.instance.endSession();
@@ -76,7 +79,7 @@ class AppambitSdk {
     return AppAmbitSdkFlutterPlatform.instance.didCrashInLastSession();
   }
 
-  /// Triggers a native crash for testing (use in debug only).
+  /// Triggers a native crash for testing
   static Future<void> generateTestCrash() {
     _ensureRegistered();
     return AppAmbitSdkFlutterPlatform.instance.generateTestCrash();
@@ -85,10 +88,9 @@ class AppambitSdk {
   /// Unified error logger.
   ///
   /// Use ONE API for both use cases:
-  /// - Message-only:     logError(message: "Human readable message")
+  /// - Message-only:     logError(message: "error message")
   /// - Exception/stack:  logError(exception: e, stackTrace: st, properties: {...}, classFqn: ..., fileName: ..., lineNumber: ...)
   ///
-  /// The SDK stringifies `exception` and normalizes `stackTrace` internally.
   static Future<void> logError({
     String? message,
     Object? exception,
@@ -104,7 +106,12 @@ class AppambitSdk {
         ? message
         : _stringify(exception);
 
-    final String? stackStr = _normalizeStackTrace(exception, stackTrace);
+    final StackTrace effectiveStack =
+        stackTrace ?? (exception is Error && exception.stackTrace != null
+            ? exception.stackTrace!
+            : StackTrace.current);
+
+    final String? stackStr = _normalizeStackTrace(exception, effectiveStack);
 
     final Map<String, dynamic> payload = {};
 
@@ -117,22 +124,51 @@ class AppambitSdk {
     if (properties != null && properties.isNotEmpty) {
       payload['properties'] = properties;
     }
-    if (classFqn != null && classFqn.isNotEmpty) {
-      payload['classFqn'] = classFqn;
+
+    final _CallSite inferred = _inferCallSite(effectiveStack);
+
+    final String? finalClassFqn = (classFqn != null && classFqn.isNotEmpty)
+        ? classFqn
+        : inferred.classFqn;
+
+    final String? finalFileName = (fileName != null && fileName.isNotEmpty)
+        ? fileName
+        : inferred.filePath;
+
+    final int? finalLine = lineNumber ?? inferred.lineNumber;
+
+    if (finalClassFqn != null && finalClassFqn.isNotEmpty) {
+      payload['classFqn'] = finalClassFqn;
     }
-    if (fileName != null && fileName.isNotEmpty) {
-      payload['fileName'] = fileName;
+    if (finalFileName != null && finalFileName.isNotEmpty) {
+      payload['fileName'] = finalFileName;
     }
-    if (lineNumber != null) {
-      payload['lineNumber'] = lineNumber;
+    if (finalLine != null) {
+      payload['lineNumber'] = finalLine;
     }
 
     if (payload.isEmpty) return Future.value();
 
-    return AppAmbitSdkFlutterPlatform.instance.logError(payload);
+    final bool userProvidedMessage = message != null && message.isNotEmpty;
+
+    final bool hasExceptionLike = (exception != null) || (stackStr != null && stackStr.isNotEmpty);
+    if (hasExceptionLike) {
+      final int digest = _computeDigest(exception: exception, message: messageStr, stackStr: stackStr);
+      if (_isDuplicateDigest(digest)) {
+        return Future.value();
+      }
+    }
+
+    if (userProvidedMessage) {
+      return AppAmbitSdkFlutterPlatform.instance.logErrorMessage(payload);
+    } else if ((exception != null) || (stackStr != null && stackStr.isNotEmpty)) {
+      return AppAmbitSdkFlutterPlatform.instance.logError(payload);
+    } else {
+      return Future.value();
+    }
   }
 
-  /// Best-effort conversion to human-friendly string.
+
   static String? _stringify(Object? value) {
     if (value == null) return null;
     try {
@@ -142,7 +178,7 @@ class AppambitSdk {
     }
   }
 
-  /// Prefer the explicit param; otherwise pull from `Error.stackTrace` when available.
+
   static String? _normalizeStackTrace(Object? exception, StackTrace? stackTrace) {
     final StackTrace? st = stackTrace ?? (exception is Error ? exception.stackTrace : null);
     return st?.toString();
@@ -174,4 +210,84 @@ class AppambitSdk {
     });
     Isolate.current.addErrorListener(_isolateErrorPort!.sendPort);
   }
+
+  static int _computeDigest({Object? exception, String? message, String? stackStr}) {
+    final String a = exception?.runtimeType.toString() ?? '';
+    final String b = (exception?.toString() ?? message ?? '').trim();
+    final String c = (stackStr ?? '').split('\n').take(20).join('|');
+    return Object.hashAll([a, b, c]);
+  }
+
+  static bool _isDuplicateDigest(int d) {
+    final int now = DateTime.now().millisecondsSinceEpoch;
+    _recentErrorDigests.removeWhere((_, t) => (now - t) > _dedupeTtlMs);
+    final bool seen = _recentErrorDigests.containsKey(d);
+    if (!seen) _recentErrorDigests[d] = now;
+    return seen;
+  }
+}
+
+class _CallSite {
+  final String? classFqn;
+  final String? filePath;
+  final int? lineNumber;
+  const _CallSite({this.classFqn, this.filePath, this.lineNumber});
+}
+
+_CallSite _inferCallSite(StackTrace stack) {
+  final lines = stack.toString().split('\n');
+  final skipPrefixes = <String>[
+    'dart:',
+    'package:flutter/',
+    'package:flutter_test/',
+    'package:appambit_sdk_flutter/',
+    'package:appambit_sdk/',
+  ];
+
+  for (final raw in lines) {
+    final line = raw.trim();
+    if (line.isEmpty) continue;
+    final m = RegExp(r'^\#\d+\s+([^\s]+)\s+\((.+):(\d+)(?::\d+)?\)$').firstMatch(line);
+    if (m == null) continue;
+    final symbol = m.group(1) ?? '';
+    final loc = m.group(2) ?? '';
+    final ln = int.tryParse(m.group(3) ?? '');
+    bool skip = false;
+    for (final p in skipPrefixes) {
+      if (loc.startsWith(p)) { skip = true; break; }
+    }
+    if (skip) continue;
+    if (symbol.startsWith('AppambitSdk.') || symbol.contains('.logError')) continue;
+    final filePath = _normalizePath(loc);
+    final inferredClass = _symbolToClass(symbol) ?? _fallbackClassFromPath(filePath);
+    return _CallSite(classFqn: inferredClass, filePath: filePath, lineNumber: ln);
+  }
+
+  return const _CallSite();
+}
+
+String _normalizePath(String loc) {
+  if (loc.startsWith('file:')) {
+    try { return Uri.parse(loc).toFilePath(); } catch (_) { return loc; }
+  }
+  return loc;
+}
+
+String? _symbolToClass(String symbol) {
+  if (symbol.contains('.')) {
+    final head = symbol.split('.').first;
+    final cleaned = head.replaceAll('<anonymous closure>', '').trim();
+    if (cleaned.isNotEmpty) return cleaned;
+  }
+  return null;
+}
+
+String? _fallbackClassFromPath(String path) {
+  final slash = path.lastIndexOf('/');
+  final back = path.lastIndexOf('\\');
+  final idx = slash > back ? slash : back;
+  final base = idx >= 0 ? path.substring(idx + 1) : path;
+  final dot = base.lastIndexOf('.');
+  final name = dot > 0 ? base.substring(0, dot) : base;
+  return name.isNotEmpty ? name : null;
 }
