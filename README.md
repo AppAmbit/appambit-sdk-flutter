@@ -67,7 +67,7 @@ dependencies:
 
 and then
 
-flutter pub get
+`flutter pub get`
 
 
 Or add it using
