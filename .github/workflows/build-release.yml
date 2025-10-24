@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - chore/testing-release-pipeline
-
+ 
 env:
   FLUTTER_VERSION: '3.35.4'
   FLUTTER_PACKAGE_PATH: 'appambit_sdk_flutter'
