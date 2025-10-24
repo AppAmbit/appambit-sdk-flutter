@@ -1,7 +1,9 @@
 name: Build and Publish Release
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - chore/testing-release-pipeline
 
 env:
   FLUTTER_VERSION: '3.35.4'
