@@ -1,11 +1,9 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:appambit_sdk_flutter/appambit_sdk_flutter_method_channel.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  MethodChannelAppambitSdkFlutter platform = MethodChannelAppambitSdkFlutter();
   const MethodChannel channel = MethodChannel('appambit_sdk_flutter');
 
   setUp(() {
@@ -21,7 +19,4 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(channel, null);
   });
 
-  test('getPlatformVersion', () async {
-    expect(await platform.getPlatformVersion(), '42');
-  });
 }

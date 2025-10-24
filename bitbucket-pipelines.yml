@@ -1,0 +1,165 @@
+options:
+  size: 2x
+  max-time: 10
+
+pipelines:
+  default:
+    - step:
+        name: Build Flutter APK
+        image: instrumentisto/flutter:3.35.4
+        script:
+          - export APK_NAME="app_appambit_testapp_apk"
+          - export PROJECT_PATH="appambit_sdk_flutter/appambit_test_app"
+          - export ARTIFACTS_DIR="artifacts"
+          - export TEST_PROJECT_NAME="appambit_test_app"
+
+          - export FULL_BRANCH="${BITBUCKET_BRANCH}"
+          - echo "Current branch - $FULL_BRANCH"
+
+          - if [[ "$FULL_BRANCH" == alpha/* || "$FULL_BRANCH" == beta/* || "$FULL_BRANCH" == production/* ]]; then
+              export TYPE_RELEASE="${FULL_BRANCH%%/*}";
+              echo "TYPE_RELEASE=$TYPE_RELEASE";
+            else
+              echo "Branch '$FULL_BRANCH' must start with alpha/, beta/ or production/. Exiting...";
+              exit 1;
+            fi
+
+          - cd $PROJECT_PATH
+          - DIR=$(pwd)
+          - echo "Working directory - $DIR"
+
+          - flutter pub get
+
+          - echo "$KEYSTORE_BASE64" | base64 -d > $DIR/android/appambit.keystore
+          - echo "storePassword=$KEYSTORE_PASSWORD" > $DIR/android/key.properties
+          - echo "keyPassword=$KEY_PASSWORD" >> $DIR/android/key.properties
+          - echo "keyAlias=$KEY_ALIAS" >> $DIR/android/key.properties
+          - echo "storeFile=../appambit.keystore" >> $DIR/android/key.properties
+
+          - flutter build apk --release
+
+          - ORIGINAL_APK=$(find $DIR/build/app/outputs/flutter-apk -name "*.apk" | head -n 1)
+          - mkdir -p $DIR/$ARTIFACTS_DIR
+          - NEW_APK_NAME="${APK_NAME}_${TYPE_RELEASE}.apk"
+          - cp "$ORIGINAL_APK" "$DIR/$ARTIFACTS_DIR/$NEW_APK_NAME"
+
+          - cd $DIR/$ARTIFACTS_DIR
+          - ZIP_NAME="${APK_NAME}_${TYPE_RELEASE}.zip"
+          - zip "$ZIP_NAME" "$NEW_APK_NAME"
+          - mv "$ZIP_NAME" $BITBUCKET_CLONE_DIR/
+
+        artifacts:
+          - "*.zip"
+
+    - step:
+        name: Upload APK ZIP to Downloads
+        image: atlassian/default-image:4
+        script:
+          - pipe: atlassian/bitbucket-upload-file:0.7.5
+            variables:
+              ATLASSIAN_ACCOUNT_EMAIL: $ATLASSIAN_EMAIL
+              ATLASSIAN_API_TOKEN: $ATLASSIAN_API_TOKEN
+              FILENAME: "*.zip"
+
+    - step:
+        name: Build Flutter IPA
+        runs-on:
+          - self.hosted
+          - macos
+        script:
+          - export FULL_BRANCH="${BITBUCKET_BRANCH}"
+          - echo "Current branch - $FULL_BRANCH"
+
+          - export IOS_INFO_PLIST="ExportOptions.plist"
+          - export BUNDLE_IDENTIFIER="com.AppAmbit.TestApp"
+          - export IPA_NAME="app_appambit_testapp_ipa"
+          - export ROOT_DIR="appambit_sdk_flutter"
+          - export TEST_PROJECT_NAME="appambit_test_app"
+
+          - if [[ "$FULL_BRANCH" == alpha/* || "$FULL_BRANCH" == beta/* || "$FULL_BRANCH" == production/* ]]; then
+              export TYPE_RELEASE="${FULL_BRANCH%%/*}";
+              echo "TYPE_RELEASE=$TYPE_RELEASE";
+            else
+              echo "Branch '$FULL_BRANCH' must start with alpha/, beta/ or production/. Exiting...";
+              exit 1;
+            fi
+
+          - export CERTIFICATE_PATH=$BITBUCKET_CLONE_DIR/tmp_certificate.p12
+          - export KEYCHAIN_PATH=$BITBUCKET_CLONE_DIR/app-signing.keychain-db
+          - export PP_PATH=$BITBUCKET_CLONE_DIR/temp.mobileprovision
+
+          - echo -n "$IOS_P12_CERTIFICATE_BASE64" | base64 -d > $CERTIFICATE_PATH
+          - echo -n "$IOS_PROVISIONING_PROFILE_BASE64" | base64 -d > $PP_PATH
+
+          - security create-keychain -p "$IOS_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          - security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          - security unlock-keychain -p "$IOS_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          - security list-keychain -d user -s $KEYCHAIN_PATH
+          - security import $CERTIFICATE_PATH -P "$IOS_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          - security find-identity -v
+
+          - UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(/usr/bin/security cms -D -i $PP_PATH))
+          - mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          - cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
+          - echo "Provisioning profile UUID - $UUID"
+
+          - cd $ROOT_DIR/$TEST_PROJECT_NAME/ios
+          - |
+            cat > $IOS_INFO_PLIST <<EOF
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+            <plist version="1.0">
+            <dict>
+              <key>compileBitcode</key>
+              <true/>
+              <key>method</key>
+              <string>ad-hoc</string>
+              <key>provisioningProfiles</key>
+              <dict>
+                <key>${BUNDLE_IDENTIFIER}</key>
+                <string>${IOS_ADHOC_PROFILE}</string>
+              </dict>
+              <key>signingCertificate</key>
+              <string>iPhone Distribution</string>
+              <key>signingStyle</key>
+              <string>manual</string>
+              <key>stripSwiftSymbols</key>
+              <true/>
+              <key>teamID</key>
+              <string>${IOS_APPLE_TEAM_ID}</string>
+              <key>thinning</key>
+              <string>&lt;none&gt;</string>
+            </dict>
+            </plist>
+            EOF
+
+          - cd $BITBUCKET_CLONE_DIR/$ROOT_DIR
+          - flutter pub get
+          
+          - cd $BITBUCKET_CLONE_DIR/$ROOT_DIR/$TEST_PROJECT_NAME
+          - flutter build ipa --release --export-options-plist ios/$IOS_INFO_PLIST
+
+          - ORIGINAL_IPA=$(find build/ios/ipa -name "*.ipa" | head -n 1)
+          - echo "IPA found - $ORIGINAL_IPA"
+          - mkdir -p $BITBUCKET_CLONE_DIR/artifact
+          - NEW_IPA_NAME="${IPA_NAME}_${TYPE_RELEASE}.ipa"
+          - cp "$ORIGINAL_IPA" "$BITBUCKET_CLONE_DIR/artifact/$NEW_IPA_NAME"
+          - echo "IPA renamed - $NEW_IPA_NAME"
+
+          - cd $BITBUCKET_CLONE_DIR/artifact
+          - ZIP_NAME="${IPA_NAME}_${TYPE_RELEASE}.zip"
+          - zip "$ZIP_NAME" "$NEW_IPA_NAME"
+          - mv "$ZIP_NAME" $BITBUCKET_CLONE_DIR/
+
+        artifacts:
+          - "*.zip"
+
+    - step:
+        name: Upload IPA ZIP to Downloads
+        image: atlassian/default-image:4
+        script:
+          - pipe: atlassian/bitbucket-upload-file:0.7.5
+            variables:
+              ATLASSIAN_ACCOUNT_EMAIL: $ATLASSIAN_EMAIL
+              ATLASSIAN_API_TOKEN: $ATLASSIAN_API_TOKEN
+              FILENAME: "*.zip"
