@@ -7,7 +7,7 @@ on:
 
 env:
   FLUTTER_VERSION: '3.35.4'
-  FLUTTER_PACKAGE_PATH: 'appambit-sdk-flutter/appambit_sdk_flutter'
+  FLUTTER_PACKAGE_PATH: 'appambit_sdk_flutter'
 
 permissions:
   contents: write
