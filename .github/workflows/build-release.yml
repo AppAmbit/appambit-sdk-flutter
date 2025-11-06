@@ -1,11 +1,12 @@
 name: Build and Publish Release
 
 on:
-  workflow_dispatch:
-
+  push:
+    branches:
+      - chore/testing-release-pipeline
 env:
   FLUTTER_VERSION: '3.35.4'
-  FLUTTER_PACKAGE_PATH: 'appambit-sdk-flutter/appambit_sdk_flutter'
+  FLUTTER_PACKAGE_PATH: 'appambit_sdk_flutter'
 
 permissions:
   contents: write
@@ -129,7 +130,7 @@ jobs:
         run: flutter pub publish --dry-run
 
       - name: Create GitHub Release
-        if: ${{ github.ref_name == 'main' }}
+        #if: ${{ github.ref_name == 'main' }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.new_tag }}
@@ -138,6 +139,6 @@ jobs:
           prerelease: ${{ steps.version.outputs.is_prerelease }}
       
       - name: Publish Package
-        if: steps.version.outputs.is_prerelease == 'false' && github.ref_name == 'main'
+        #if: steps.version.outputs.is_prerelease == 'false' && github.ref_name == 'main'
         working-directory: ${{ env.FLUTTER_PACKAGE_PATH }}
         run: flutter pub publish -f
