@@ -1,0 +1,35 @@
+PODS:
+  - appambit_sdk_flutter (0.0.1):
+    - AppAmbitSdk (~> 0.0.8)
+    - Flutter
+  - AppAmbitSdk (0.0.8)
+  - Flutter (1.0.0)
+  - integration_test (0.0.1):
+    - Flutter
+
+DEPENDENCIES:
+  - appambit_sdk_flutter (from `.symlinks/plugins/appambit_sdk_flutter/ios`)
+  - Flutter (from `Flutter`)
+  - integration_test (from `.symlinks/plugins/integration_test/ios`)
+
+SPEC REPOS:
+  trunk:
+    - AppAmbitSdk
+
+EXTERNAL SOURCES:
+  appambit_sdk_flutter:
+    :path: ".symlinks/plugins/appambit_sdk_flutter/ios"
+  Flutter:
+    :path: Flutter
+  integration_test:
+    :path: ".symlinks/plugins/integration_test/ios"
+
+SPEC CHECKSUMS:
+  appambit_sdk_flutter: 7c01ab0cf1c58e49de54c33903b1dbc2fca217fd
+  AppAmbitSdk: c8fa4e7ddb1ab6537290750f78ec33efb3056c37
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
+
+PODFILE CHECKSUM: 3c63482e143d1b91d2d2560aee9fb04ecc74ac7e
+
+COCOAPODS: 1.16.2

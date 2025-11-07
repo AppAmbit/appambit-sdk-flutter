@@ -1,0 +1,144 @@
+name: Build and Publish Release
+
+on:
+  push:
+    branches:
+      - chore/testing-release-pipeline
+env:
+  FLUTTER_VERSION: '3.35.4'
+  FLUTTER_PACKAGE_PATH: 'appambit_sdk_flutter'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build and Publish Flutter Package
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: '${{ env.FLUTTER_VERSION }}'
+
+      - name: Install dependencies
+        working-directory: ${{ env.FLUTTER_PACKAGE_PATH }}
+        run: flutter pub get
+
+      - name: Read version from pubspec.yaml
+        id: version
+        run: |
+          PUBSPEC="${{ env.FLUTTER_PACKAGE_PATH }}/pubspec.yaml"
+          VERSION=$(grep '^version:' "$PUBSPEC" | sed 's/version: //')
+          VERSION_NAME=$(echo "$VERSION" | cut -d'+' -f1)
+          VERSION_CODE=$(echo "$VERSION" | cut -d'+' -f2)
+          echo "VERSION_NAME=$VERSION_NAME"
+          echo "VERSION_CODE=$VERSION_CODE"
+          echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
+          echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
+          echo "new_tag=v$VERSION_NAME" >> $GITHUB_OUTPUT
+
+          if [[ "$VERSION_NAME" == *"-"* ]]; then
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check if tag already exists
+        id: check_tag
+        run: |
+          TAG=${{ steps.version.outputs.new_tag }}
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists. Skipping build and publish."
+            echo "skip_build=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip_build=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Stop if tag exists
+        if: steps.check_tag.outputs.skip_build == 'true'
+        run: |
+          echo "Build skipped because version tag already exists."
+          exit 0
+
+      - name: Extract latest changelog entry
+        id: changelog
+        run: |
+          CHANGELOG="${{ env.FLUTTER_PACKAGE_PATH }}/CHANGELOG.md"
+          LATEST_CHANGELOG=$(awk '/^## Version /{if (p) exit; p=1} p' "$CHANGELOG" | sed '1d')
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$LATEST_CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Show changelog
+        run: |
+          echo "Last changes:"
+          echo "${{ steps.changelog.outputs.changelog }}"
+
+      - name: Setup Pub Credentials
+        shell: bash
+        env:
+          PUB_DEV_PUBLISH_ACCESS_TOKEN: ${{ secrets.PUB_DEV_PUBLISH_ACCESS_TOKEN }}
+          PUB_DEV_PUBLISH_REFRESH_TOKEN: ${{ secrets.PUB_DEV_PUBLISH_REFRESH_TOKEN }}
+          PUB_DEV_PUBLISH_TOKEN_ENDPOINT: ${{ secrets.PUB_DEV_PUBLISH_TOKEN_ENDPOINT }}
+          PUB_DEV_PUBLISH_EXPIRATION: ${{ secrets.PUB_DEV_PUBLISH_EXPIRATION }}
+          PUB_DEV_PUBLISH_ID_TOKEN: ${{ secrets.PUB_DEV_PUBLISH_ID_TOKEN }}
+        run: |
+          if [ -z "${PUB_DEV_PUBLISH_ACCESS_TOKEN}" ]; then
+            echo "Missing PUB_DEV_PUBLISH_ACCESS_TOKEN environment variable"
+            exit 1
+          fi
+
+          if [ -z "${PUB_DEV_PUBLISH_REFRESH_TOKEN}" ]; then
+            echo "Missing PUB_DEV_PUBLISH_REFRESH_TOKEN environment variable"
+            exit 1
+          fi
+
+          if [ -z "${PUB_DEV_PUBLISH_TOKEN_ENDPOINT}" ]; then
+            echo "Missing PUB_DEV_PUBLISH_TOKEN_ENDPOINT environment variable"
+            exit 1
+          fi
+
+          if [ -z "${PUB_DEV_PUBLISH_EXPIRATION}" ]; then
+            echo "Missing PUB_DEV_PUBLISH_EXPIRATION environment variable"
+            exit 1
+          fi
+
+          mkdir -p ~/.pub-cache
+          cat <<EOF > ~/.pub-cache/credentials.json
+          {
+            "accessToken":"${PUB_DEV_PUBLISH_ACCESS_TOKEN}",
+            "refreshToken":"${PUB_DEV_PUBLISH_REFRESH_TOKEN}",
+            "idToken":"${PUB_DEV_PUBLISH_ID_TOKEN}",
+            "tokenEndpoint":"${PUB_DEV_PUBLISH_TOKEN_ENDPOINT}",
+            "scopes":["openid","https://www.googleapis.com/auth/userinfo.email"],
+            "expiration":${PUB_DEV_PUBLISH_EXPIRATION}
+          }
+          EOF
+
+      - name: Check Publish Dry Run
+        working-directory: ${{ env.FLUTTER_PACKAGE_PATH }}
+        run: flutter pub publish --dry-run
+
+      - name: Create GitHub Release
+        #if: ${{ github.ref_name == 'main' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.new_tag }}
+          name: ${{ steps.version.outputs.new_tag }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          prerelease: ${{ steps.version.outputs.is_prerelease }}
+      
+      - name: Publish Package
+        #if: steps.version.outputs.is_prerelease == 'false' && github.ref_name == 'main'
+        working-directory: ${{ env.FLUTTER_PACKAGE_PATH }}
+        run: flutter pub publish -f
