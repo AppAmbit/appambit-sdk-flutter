@@ -17,7 +17,7 @@ Lightweight SDK for analytics, events, logging, crashes, and offline support. Si
   s.dependency 'Flutter'
   s.platform = :ios, '13.0'
 
-  s.dependency 'AppAmbitSdk', '~> 0.0.8'
+  s.dependency 'AppAmbitSdk', '~> 0.0.9'
   
   # Flutter.framework does not contain a i386 slice.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
