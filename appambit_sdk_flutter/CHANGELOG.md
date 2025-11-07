@@ -2,7 +2,7 @@
 
 ### AppAmbit SDK
 
-* **[Chore]** AppAmbit update sdks to 0.0.9
+* **[Chore]** AppAmbit update sdk to 0.0.9
 
 ## Version 0.0.1
 
