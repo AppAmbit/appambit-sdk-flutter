@@ -38,9 +38,9 @@ flutter:
     platforms:
       android:
         package: com.appambit.appambit_sdk_flutter
-        pluginClass: AppambitSdkFlutterPlugin
+        pluginClass: AppAmbitSdkFlutterPlugin
       ios:
-        pluginClass: AppambitSdkFlutterPlugin
+        pluginClass: AppAmbitSdkFlutterPlugin
 
   # To add assets to your plugin package, add an assets section, like this:
   # assets:

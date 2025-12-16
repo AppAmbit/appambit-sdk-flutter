@@ -55,7 +55,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
 
   Future<void> _onTokenRefreshTest() async {
     final futures = List.generate(5, (i) {
-      return AppambitSdk.logError(
+      return AppAmbitSdk.logError(
         message: 'Sending logs 5 after invalid token',
         properties: <String, String>{'user_id': '1'},
         classFqn: 'AnalyticsView',
@@ -66,7 +66,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
     await Future.wait(futures);
 
     for (var i = 1; i <= 5; i++) {
-      await AppambitSdk.trackEvent(
+      await AppAmbitSdk.trackEvent(
         'Sending event 5 after invalid token',
         <String, String>{'Test Token': '5 events sent'},
       );
@@ -76,27 +76,27 @@ class _AnalyticsViewState extends State<AnalyticsView> {
   }
 
   Future<void> _startSession() async {
-    await AppambitSdk.startSession();
+    await AppAmbitSdk.startSession();
     _toast('Session started');
   }
 
   Future<void> _endSession() async {
-    await AppambitSdk.endSession();
+    await AppAmbitSdk.endSession();
     _toast('Session ended');
   }
 
   Future<void> _invalidateToken() async {
-    await AppambitSdk.clearToken();
+    await AppAmbitSdk.clearToken();
     _toast('Token invalidated');
   }
 
   Future<void> _sendButtonClickedEvent() async {
-    await AppambitSdk.trackEvent('ButtonClicked', <String, String>{'Count': '41'});
+    await AppAmbitSdk.trackEvent('ButtonClicked', <String, String>{'Count': '41'});
     _toast('Event sent');
   }
 
   Future<void> _sendDefaultEvent() async {
-    await AppambitSdk.generateTestEvent();
+    await AppAmbitSdk.generateTestEvent();
     _toast('Default test event sent');
   }
 
@@ -104,7 +104,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
     final c300 = _repeatToLength('1234567890', 300);
     final c300b = _repeatToLength('1234567890', 301);
     final props = <String, String>{c300: c300, c300b: c300b};
-    await AppambitSdk.trackEvent(c300, props);
+    await AppAmbitSdk.trackEvent(c300, props);
     _toast('Max-300-Length event sent');
   }
 
@@ -136,7 +136,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
       '24': '24',
       '25': '25',
     };
-    await AppambitSdk.trackEvent('TestMaxProperties', props);
+    await AppAmbitSdk.trackEvent('TestMaxProperties', props);
     _toast('Max-20-Properties event sent');
   }
 
