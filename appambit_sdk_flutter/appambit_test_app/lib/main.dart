@@ -6,8 +6,8 @@ import 'package:appambit_sdk_flutter/appambit_sdk_flutter.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   //Uncomment the line for automatic session management
-  //AppambitSdk.enableManualSession();
-  AppambitSdk.start(appKey: '<YOUR-APPKEY>');
+  //AppAmbitSdk.enableManualSession();
+  AppAmbitSdk.start(appKey: '5d61d89d-b588-43dc-b7f7-f42f812e7da5');
   runApp(const MyApp());
 }
 class MyApp extends StatelessWidget {

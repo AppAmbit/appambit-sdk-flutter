@@ -62,7 +62,7 @@ Add the AppAmbit Flutter SDK to your app’s `pubspec.yml`.
 dependencies:
   flutter:
     sdk: flutter
-  appambit_sdk_flutter: ^0.0.2
+  appambit_sdk_flutter: ^0.0.3
 ```
 
 and then
@@ -87,7 +87,7 @@ Initialize the SDK with your **API key**.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  AppambitSdk.start(appKey: '<YOUR-APPKEY>');
+  AppAmbitSdk.start(appKey: '<YOUR-APPKEY>');
 
   runApp(const MyApp());
 }
@@ -115,7 +115,7 @@ Add these permissions to your `AndroidManifest.xml`:
 ### Dart
 
 ```dart
-await AppambitSdk.trackEvent('ButtonClicked', <String, String>{'Count': '41'});
+await AppAmbitSdk.trackEvent('ButtonClicked', <String, String>{'Count': '41'});
 ```
 
 ### Dart
@@ -124,7 +124,7 @@ await AppambitSdk.trackEvent('ButtonClicked', <String, String>{'Count': '41'});
 try {
     throw Exception('Test with Properties');
 } catch (e, st) {
-    await AppambitSdk.logError(
+    await AppAmbitSdk.logError(
     exception: e,
     stackTrace: st,
     properties: <String, String>{'user_id': '1'}
