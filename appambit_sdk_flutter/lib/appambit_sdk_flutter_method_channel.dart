@@ -25,6 +25,12 @@ class MethodChannelAppambitSdkFlutter extends AppAmbitSdkFlutterPlatform {
     await _core.invokeMethod('start', {'appKey': appKey});
   }
 
+  // Breadcrumbs
+  @override
+  Future<void> addBreadcrumb(String name) {
+    return _core.invokeMethod<void>('addBreadcrumb', {'name': name});
+  }
+
   // Analytics
   @override
   Future<void> setUserId(String userId) async {

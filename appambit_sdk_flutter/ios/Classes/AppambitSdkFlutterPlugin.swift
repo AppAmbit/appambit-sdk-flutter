@@ -55,6 +55,17 @@ public class AppambitSdkFlutterPlugin: NSObject, FlutterPlugin {
           result(nil)
         }
 
+      case "addBreadcrumb":
+        guard
+          let args = call.arguments as? [String: Any],
+          let name = args["name"] as? String,
+          !name.isEmpty
+        else {
+          result(FlutterError(code: "BAD_ARGS", message: "Missing 'name'", details: nil))
+          return
+        }
+        BreadcrumbManager.addAsync(name: name)
+
       default:
         result(FlutterMethodNotImplemented)
       }

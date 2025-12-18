@@ -2,6 +2,7 @@ package com.appambit.appambit_sdk_flutter
 
 import android.content.Context
 import com.appambit.sdk.AppAmbit
+import com.appambit.sdk.BreadcrumbManager
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -39,17 +40,28 @@ class AppambitSdkFlutterPlugin :
         call: MethodCall,
         result: Result
     ) {
-        if (call.method == "start") {
-            val args = call.arguments as? Map<*, *>
-            val appKey = args?.get("appKey") as? String
-            if (appKey == null || appKey.isEmpty()) {
-                result.error("BAD_ARGS", "Missing 'appKey'", null)
-            } else {
-                AppAmbit.start(context, appKey)
-                result.success(null)
+        when (call.method) {
+            "start" -> {
+                val args = call.arguments as? Map<*, *>
+                val appKey = args?.get("appKey") as? String
+                if (appKey == null || appKey.isEmpty()) {
+                    result.error("BAD_ARGS", "Missing 'appKey'", null)
+                } else {
+                    AppAmbit.start(context, appKey)
+                    result.success(null)
+                }
             }
-        } else {
-            result.notImplemented()
+            "addBreadcrumb" -> {
+                val args = call.arguments as? Map<*, *>
+                val name = args?.get("name") as? String
+                if (name == null || name.isEmpty()) {
+                    result.error("BAD_ARGS", "Missing 'name'", null)
+                } else {
+                    BreadcrumbManager.addAsync(name)
+                    result.success(null)
+                }
+            }
+            else -> result.notImplemented()
         }
     }
 
