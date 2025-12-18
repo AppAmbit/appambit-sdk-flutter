@@ -57,7 +57,7 @@ class AppAmbitSdkFlutterPlugin :
                 if (name == null || name.isEmpty()) {
                     result.error("BAD_ARGS", "Missing 'name'", null)
                 } else {
-                    BreadcrumbManager.addAsync(name)
+                    AppAmbit.addBreadcrumb(name)
                     result.success(null)
                 }
             }

@@ -64,7 +64,7 @@ public class AppAmbitSdkFlutterPlugin: NSObject, FlutterPlugin {
           result(FlutterError(code: "BAD_ARGS", message: "Missing 'name'", details: nil))
           return
         }
-        BreadcrumbManager.addAsync(name: name)
+        AppAmbit.addBreadcrumb(name: name)
 
       default:
         result(FlutterMethodNotImplemented)
