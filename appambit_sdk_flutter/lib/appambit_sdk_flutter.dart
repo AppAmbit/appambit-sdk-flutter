@@ -8,7 +8,7 @@ import 'package:flutter/widgets.dart';
 import 'appambit_sdk_flutter_method_channel.dart' as _impl;
 import 'appambit_sdk_flutter_platform_interface.dart';
 
-class AppambitSdk extends RouteObserver<Route<dynamic>> {
+class AppAmbitSdk extends NavigatorObserver {
   static bool _hooksInstalled = false;
   static RawReceivePort? _isolateErrorPort;
   static bool _firstNavigationIgnored = false;
@@ -225,13 +225,13 @@ class AppambitSdk extends RouteObserver<Route<dynamic>> {
     FlutterError.onError = (FlutterErrorDetails details) {
       final Object error = details.exception;
       final StackTrace stack = details.stack ?? StackTrace.current;
-      AppambitSdk.logError(exception: error, stackTrace: stack);
+      AppAmbitSdk.logError(exception: error, stackTrace: stack);
       try { originalFlutterOnError?.call(details); } catch (_) {}
       try { FlutterError.presentError(details); } catch (_) {}
     };
 
     ui.PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
-      AppambitSdk.logError(exception: error, stackTrace: stack);
+      AppAmbitSdk.logError(exception: error, stackTrace: stack);
       return true;
     };
 
@@ -239,7 +239,7 @@ class AppambitSdk extends RouteObserver<Route<dynamic>> {
       final List<dynamic> errorAndStack = pair as List<dynamic>;
       final Object error = errorAndStack.first;
       final StackTrace stack = StackTrace.fromString(errorAndStack.last as String);
-      AppambitSdk.logError(exception: error, stackTrace: stack);
+      AppAmbitSdk.logError(exception: error, stackTrace: stack);
     });
     Isolate.current.addErrorListener(_isolateErrorPort!.sendPort);
   }
@@ -290,7 +290,7 @@ _CallSite _inferCallSite(StackTrace stack) {
       if (loc.startsWith(p)) { skip = true; break; }
     }
     if (skip) continue;
-    if (symbol.startsWith('AppambitSdk.') || symbol.contains('.logError')) continue;
+    if (symbol.startsWith('AppAmbitSdk.') || symbol.contains('.logError')) continue;
     final filePath = _normalizePath(loc);
     final inferredClass = _symbolToClass(symbol) ?? _fallbackClassFromPath(filePath);
     return _CallSite(classFqn: inferredClass, filePath: filePath, lineNumber: ln);

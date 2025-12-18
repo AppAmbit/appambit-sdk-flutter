@@ -1,6 +1,6 @@
 name: appambit_sdk_flutter
 description: "Lightweight SDK for analytics, events, logging, crashes, and offline support. Simple setup, minimal overhead."
-version: 0.0.2
+version: 0.0.3
 homepage: "https://appambit.com"
 repository: "https://github.com/AppAmbit/appambit-sdk-flutter"
 documentation: "https://docs.appambit.com"
@@ -38,9 +38,9 @@ flutter:
     platforms:
       android:
         package: com.appambit.appambit_sdk_flutter
-        pluginClass: AppambitSdkFlutterPlugin
+        pluginClass: AppAmbitSdkFlutterPlugin
       ios:
-        pluginClass: AppambitSdkFlutterPlugin
+        pluginClass: AppAmbitSdkFlutterPlugin
 
   # To add assets to your plugin package, add an assets section, like this:
   # assets:

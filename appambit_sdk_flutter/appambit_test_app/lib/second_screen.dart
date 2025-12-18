@@ -20,7 +20,7 @@ class SecondScreen extends StatelessWidget {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: () => Navigator.push(context, MaterialPageRoute(
-              settings: const RouteSettings(name: '/main'),
+              settings: const RouteSettings(name: 'main'),
               builder: (context) => const MainBottomNavPage(),
             )),
             child: const Text('Back to Analytics View'),
