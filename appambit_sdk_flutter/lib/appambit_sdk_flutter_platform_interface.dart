@@ -20,6 +20,10 @@ abstract class AppAmbitSdkFlutterPlatform extends PlatformInterface {
     throw UnimplementedError('startCore() not implemented');
   }
 
+  Future<void> addBreadcrumb(String name) {
+    throw UnimplementedError('addBreadcrumb() not implemented');
+  }
+
   Future<void> setUserId(String userId) {
     throw UnimplementedError('setUserId() not implemented');
   }

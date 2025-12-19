@@ -1,5 +1,6 @@
 import 'package:appambit_sdk_flutter/appambit_sdk_flutter.dart';
 import 'package:flutter/material.dart';
+import 'second_screen.dart';
 
 class AnalyticsView extends StatefulWidget {
   const AnalyticsView({super.key});
@@ -140,6 +141,16 @@ class _AnalyticsViewState extends State<AnalyticsView> {
     _toast('Max-20-Properties event sent');
   }
 
+  Future<void> _onClickedChangeToSecondActivity() async {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        settings: const RouteSettings(name: 'second_screen'),
+        builder: (context) => const SecondScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scrollbar(
@@ -157,6 +168,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
             _blueButton('Send Default Event w/ property', _sendDefaultEvent),
             _blueButton('Send Max-300-Length Event', _onClickedTestLimitsEvent),
             _blueButton('Send Max-20-Properties Event', _onClickedTestMaxPropertiesEven),
+            _blueButton('Change to Second Activity', _onClickedChangeToSecondActivity),
             const SizedBox(height: 12),
           ],
         ),
