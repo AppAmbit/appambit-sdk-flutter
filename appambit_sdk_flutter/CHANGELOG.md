@@ -2,7 +2,7 @@
 
 ### AppAmbit SDK
 
-* **[Feature]** Introduced Session Timeline for automatic page navigation change detection
+* **[Feature]** Auto populate session timeline with app and page lifecycle event breadcrumbs
 
 ## Version 0.0.3
 
