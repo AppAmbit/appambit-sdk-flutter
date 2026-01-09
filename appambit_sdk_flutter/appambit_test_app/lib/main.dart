@@ -7,7 +7,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   //Uncomment the line for automatic session management
   //AppAmbitSdk.enableManualSession();
-  AppAmbitSdk.start(appKey: '5d61d89d-b588-43dc-b7f7-f42f812e7da5');
+  AppAmbitSdk.start(appKey: '<YOUR-APPKEY>');
   runApp(const MyApp());
 }
 class MyApp extends StatelessWidget {
@@ -15,6 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorObservers: [AppAmbitSdk()],
       title: 'AppAmbit SDK Example',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
