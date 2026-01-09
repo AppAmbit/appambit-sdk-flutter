@@ -2,7 +2,7 @@
 
 ### AppAmbit SDK
 
-* **[Feature]** Introduced Ambit Trails for automatic page navigation change detection
+* **[Feature]** Introduced Session Timeline for automatic page navigation change detection
 
 ## Version 0.0.3
 
