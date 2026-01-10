@@ -1,3 +1,9 @@
+## Version 0.1.0
+
+### AppAmbit SDK
+
+* **[Feature]** Auto populate session timeline with app and page lifecycle event breadcrumbs
+
 ## Version 0.0.3
 
 ### AppAmbit SDK
