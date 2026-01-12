@@ -3,19 +3,52 @@ import 'dart:isolate';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 
 import 'appambit_sdk_flutter_method_channel.dart' as _impl;
 import 'appambit_sdk_flutter_platform_interface.dart';
 
-class AppambitSdk {
+class AppAmbitSdk extends NavigatorObserver {
   static bool _hooksInstalled = false;
   static RawReceivePort? _isolateErrorPort;
+  static bool _firstNavigationIgnored = false;
 
   static final Map<int, int> _recentErrorDigests = <int, int>{};
   static const int _dedupeTtlMs = 3000;
 
   static void _ensureRegistered() {
     _impl.registerMethodChannelImplementation();
+  }
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    super.didPush(route, previousRoute);
+
+    if (!_isPageRoute(route)) return;
+    if (!_firstNavigationIgnored) {
+      _firstNavigationIgnored = true;
+      return;
+    }
+
+    AppAmbitSdkFlutterPlatform.instance.addBreadcrumb('Push ${_describeRoute(route)}');
+  }
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
+
+    if (!_isPageRoute(newRoute)) return;
+
+    AppAmbitSdkFlutterPlatform.instance.addBreadcrumb('Replaced $oldRoute - $newRoute');
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    super.didPop(route, previousRoute);
+
+    if (!_isPageRoute(route)) return;
+
+    AppAmbitSdkFlutterPlatform.instance.addBreadcrumb('Pop ${_describeRoute(route)}');
   }
 
   /// Starts the core SDK with the provided app key.
@@ -192,13 +225,13 @@ class AppambitSdk {
     FlutterError.onError = (FlutterErrorDetails details) {
       final Object error = details.exception;
       final StackTrace stack = details.stack ?? StackTrace.current;
-      AppambitSdk.logError(exception: error, stackTrace: stack);
+      AppAmbitSdk.logError(exception: error, stackTrace: stack);
       try { originalFlutterOnError?.call(details); } catch (_) {}
       try { FlutterError.presentError(details); } catch (_) {}
     };
 
     ui.PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
-      AppambitSdk.logError(exception: error, stackTrace: stack);
+      AppAmbitSdk.logError(exception: error, stackTrace: stack);
       return true;
     };
 
@@ -206,7 +239,7 @@ class AppambitSdk {
       final List<dynamic> errorAndStack = pair as List<dynamic>;
       final Object error = errorAndStack.first;
       final StackTrace stack = StackTrace.fromString(errorAndStack.last as String);
-      AppambitSdk.logError(exception: error, stackTrace: stack);
+      AppAmbitSdk.logError(exception: error, stackTrace: stack);
     });
     Isolate.current.addErrorListener(_isolateErrorPort!.sendPort);
   }
@@ -257,7 +290,7 @@ _CallSite _inferCallSite(StackTrace stack) {
       if (loc.startsWith(p)) { skip = true; break; }
     }
     if (skip) continue;
-    if (symbol.startsWith('AppambitSdk.') || symbol.contains('.logError')) continue;
+    if (symbol.startsWith('AppAmbitSdk.') || symbol.contains('.logError')) continue;
     final filePath = _normalizePath(loc);
     final inferredClass = _symbolToClass(symbol) ?? _fallbackClassFromPath(filePath);
     return _CallSite(classFqn: inferredClass, filePath: filePath, lineNumber: ln);
@@ -290,4 +323,16 @@ String? _fallbackClassFromPath(String path) {
   final dot = base.lastIndexOf('.');
   final name = dot > 0 ? base.substring(0, dot) : base;
   return name.isNotEmpty ? name : null;
+}
+
+String? _getRouteName(Route<dynamic>? route) {
+  return route?.settings.name;
+}
+
+String _describeRoute(Route<dynamic>? route) {
+  return _getRouteName(route) ?? route?.runtimeType.toString() ?? 'unknown';
+}
+
+bool _isPageRoute(Route<dynamic>? route) {
+  return route is PageRoute;
 }

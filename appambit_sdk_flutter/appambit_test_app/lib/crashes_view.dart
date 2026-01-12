@@ -29,7 +29,7 @@ class _CrashesViewState extends State<CrashesView> {
   }
 
   Future<void> _didCrashInLastSession() async {
-    final didCrash = await AppambitSdk.didCrashInLastSession();
+    final didCrash = await AppAmbitSdk.didCrashInLastSession();
     final msg = didCrash
         ? 'Application crashed in the last session'
         : 'Application did not crash in the last session';
@@ -39,25 +39,25 @@ class _CrashesViewState extends State<CrashesView> {
   Future<void> _changeUserId() async {
     final id = _userIdCtrl.text.trim();
     if (id.isEmpty) return;
-    await AppambitSdk.setUserId(id);    
+    await AppAmbitSdk.setUserId(id);    
     await _showInfo("User ID changed");
   }
 
   Future<void> _changeUserEmail() async {
     final email = _emailCtrl.text.trim();
     if (email.isEmpty) return;
-    await AppambitSdk.setEmail(email);
+    await AppAmbitSdk.setEmail(email);
     await _showInfo("Email changed");
   }
 
   Future<void> _onTestErrorLogClicked() async {
     final msg = _customLogCtrl.text.trim();
-    await AppambitSdk.logError(message: msg.isEmpty ? 'Test Log Message' : msg);
+    await AppAmbitSdk.logError(message: msg.isEmpty ? 'Test Log Message' : msg);
     await _showInfo("LogError sent");
   }
 
   Future<void> _onTestLog() async {
-    await AppambitSdk.logError(message: 'Test Log Error', properties: <String, String>{'user_id': '1'});
+    await AppAmbitSdk.logError(message: 'Test Log Error', properties: <String, String>{'user_id': '1'});
     await _showInfo("LogError sent");
   }
 
@@ -65,7 +65,7 @@ class _CrashesViewState extends State<CrashesView> {
     try {
       throw Exception('Test exception for logError');
     } catch (e, st) {
-      await AppambitSdk.logError(
+      await AppAmbitSdk.logError(
         exception: e,
         stackTrace: st,
         properties: <String, String>{'user_id': '1'}
@@ -75,7 +75,7 @@ class _CrashesViewState extends State<CrashesView> {
   }
 
   Future<void> _onSendTestLogWithClassFQN() async {
-    await AppambitSdk.logError(
+    await AppAmbitSdk.logError(
       message: 'Test log with classFQN',
       properties: <String, String>{'from': 'flutter'},
       classFqn: runtimeType.toString()
@@ -91,7 +91,7 @@ class _CrashesViewState extends State<CrashesView> {
     });
   }
 
-  Future<void> _generateTestCrash() => AppambitSdk.generateTestCrash();
+  Future<void> _generateTestCrash() => AppAmbitSdk.generateTestCrash();
 
   Widget _blueButton(String label, VoidCallback onPressed) {
     return Container(

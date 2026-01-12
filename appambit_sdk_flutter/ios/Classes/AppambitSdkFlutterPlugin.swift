@@ -2,7 +2,7 @@ import Flutter
 import UIKit
 import AppAmbitSdk
 
-public class AppambitSdkFlutterPlugin: NSObject, FlutterPlugin {
+public class AppAmbitSdkFlutterPlugin: NSObject, FlutterPlugin {
 
   // Channels
   private static let coreChannelName      = "com.appambit/appambitcore"
@@ -21,17 +21,17 @@ public class AppambitSdkFlutterPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
     // Core
     let coreChannel = FlutterMethodChannel(name: coreChannelName, binaryMessenger: registrar.messenger())
-    let coreInstance = AppambitSdkFlutterPlugin(scope: .core)
+    let coreInstance = AppAmbitSdkFlutterPlugin(scope: .core)
     registrar.addMethodCallDelegate(coreInstance, channel: coreChannel)
 
     // Analytics
     let analyticsChannel = FlutterMethodChannel(name: analyticsChannelName, binaryMessenger: registrar.messenger())
-    let analyticsInstance = AppambitSdkFlutterPlugin(scope: .analytics)
+    let analyticsInstance = AppAmbitSdkFlutterPlugin(scope: .analytics)
     registrar.addMethodCallDelegate(analyticsInstance, channel: analyticsChannel)
 
     // Crashes
     let crashesChannel = FlutterMethodChannel(name: crashesChannelName, binaryMessenger: registrar.messenger())
-    let crashesInstance = AppambitSdkFlutterPlugin(scope: .crashes)
+    let crashesInstance = AppAmbitSdkFlutterPlugin(scope: .crashes)
     registrar.addMethodCallDelegate(crashesInstance, channel: crashesChannel)
   }
 
@@ -54,6 +54,17 @@ public class AppambitSdkFlutterPlugin: NSObject, FlutterPlugin {
           AppAmbit.start(appKey: appKey)
           result(nil)
         }
+
+      case "addBreadcrumb":
+        guard
+          let args = call.arguments as? [String: Any],
+          let name = args["name"] as? String,
+          !name.isEmpty
+        else {
+          result(FlutterError(code: "BAD_ARGS", message: "Missing 'name'", details: nil))
+          return
+        }
+        AppAmbit.addBreadcrumb(name: name)
 
       default:
         result(FlutterMethodNotImplemented)

@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 
 import 'appambit_sdk_flutter_platform_interface.dart';
 
-class MethodChannelAppambitSdkFlutter extends AppAmbitSdkFlutterPlatform {
+class MethodChannelAppAmbitSdkFlutter extends AppAmbitSdkFlutterPlatform {
   @visibleForTesting
   final MethodChannel methodChannel = const MethodChannel('appambit_sdk_flutter');
 
@@ -11,18 +11,24 @@ class MethodChannelAppambitSdkFlutter extends AppAmbitSdkFlutterPlatform {
   final MethodChannel _analytics = const MethodChannel('com.appambit/analytics');
   final MethodChannel _crashes = const MethodChannel('com.appambit/crashes');
 
-  MethodChannelAppambitSdkFlutter._internal() : super() {
+  MethodChannelAppAmbitSdkFlutter._internal() : super() {
     AppAmbitSdkFlutterPlatform.instance = this;
   }
 
-  static MethodChannelAppambitSdkFlutter createAndRegister() {
-    return MethodChannelAppambitSdkFlutter._internal();
+  static MethodChannelAppAmbitSdkFlutter createAndRegister() {
+    return MethodChannelAppAmbitSdkFlutter._internal();
   }
 
   // Core
   @override
   Future<void> startCore({ required String appKey }) async {
     await _core.invokeMethod('start', {'appKey': appKey});
+  }
+
+  // Breadcrumbs
+  @override
+  Future<void> addBreadcrumb(String name) {
+    return _core.invokeMethod<void>('addBreadcrumb', {'name': name});
   }
 
   // Analytics
@@ -97,5 +103,5 @@ void registerMethodChannelImplementation() {
   } on UnimplementedError {
   }
 
-  MethodChannelAppambitSdkFlutter.createAndRegister();
+  MethodChannelAppAmbitSdkFlutter.createAndRegister();
 }

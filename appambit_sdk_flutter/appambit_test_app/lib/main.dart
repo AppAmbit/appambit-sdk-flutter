@@ -6,8 +6,8 @@ import 'package:appambit_sdk_flutter/appambit_sdk_flutter.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   //Uncomment the line for automatic session management
-  //AppambitSdk.enableManualSession();
-  AppambitSdk.start(appKey: '<YOUR-APPKEY>');
+  //AppAmbitSdk.enableManualSession();
+  AppAmbitSdk.start(appKey: '<YOUR-APPKEY>');
   runApp(const MyApp());
 }
 class MyApp extends StatelessWidget {
@@ -15,6 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorObservers: [AppAmbitSdk()],
       title: 'AppAmbit SDK Example',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
