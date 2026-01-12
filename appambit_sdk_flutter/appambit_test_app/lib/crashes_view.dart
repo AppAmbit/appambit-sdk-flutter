@@ -1,6 +1,7 @@
 
 import 'package:appambit_sdk_flutter/appambit_sdk_flutter.dart';
 import 'package:appambit_sdk_flutter_example/utils/uuid_app.dart';
+import 'package:appambit_sdk_push_notifications/appambit_sdk_push_notifications.dart';
 import 'package:flutter/material.dart';
 
 class CrashesView extends StatefulWidget {
@@ -13,6 +14,19 @@ class _CrashesViewState extends State<CrashesView> {
   final TextEditingController _userIdCtrl = TextEditingController(text: UuidApp.generateUuidV4());
   final TextEditingController _emailCtrl = TextEditingController(text: "test@gmail.com");
   final TextEditingController _customLogCtrl = TextEditingController( text: 'Test Log Message');
+  var granted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _syncNotificationStatus();
+  }
+
+  Future<void> _syncNotificationStatus() async {
+    final enabled = await PushNotificationsSdk.isNotificationsEnabled();
+    if (!mounted) return;
+    setState(() => granted = enabled);
+  }
 
   Future<void> _showInfo(String message) async {
     if (!mounted) return;
@@ -26,6 +40,28 @@ class _CrashesViewState extends State<CrashesView> {
         ],
       ),
     );
+  }
+
+  Future<void> _toggleNotifications() async {
+    try {
+      granted = !granted;
+      PushNotificationsSdk.requestNotificationPermission();
+      await PushNotificationsSdk.setNotificationsEnabled(granted);
+
+      final enabled = await PushNotificationsSdk.isNotificationsEnabled();
+
+      setState(() {
+        granted = enabled;
+      });
+
+      final msg = enabled
+          ? 'Push notifications enabled'
+          : 'Push notifications disabled';
+
+      await _showInfo(msg);
+    } catch (e) {
+      await _showInfo('Failed to update notification settings');
+    }
   }
 
   Future<void> _didCrashInLastSession() async {
@@ -157,6 +193,12 @@ class _CrashesViewState extends State<CrashesView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            _blueButton(
+              granted ? "Disable Push Notifications" : "Enable Push Notifications",
+              _toggleNotifications,
+            ),
+            const SizedBox(height: 8),
+
             _blueButton('Did the app crash during your last session?', _didCrashInLastSession),
             const SizedBox(height: 8),
 

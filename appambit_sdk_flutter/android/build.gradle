@@ -14,10 +14,14 @@ buildscript {
     }
 }
 
-allprojects {
+def appambitLibPath = project.file('libs')
+rootProject.allprojects {
     repositories {
         google()
         mavenCentral()
+        flatDir {
+            dirs appambitLibPath
+        }
     }
 }
 
@@ -66,5 +70,6 @@ android {
 }
 
 dependencies {
-    implementation("com.appambit:appambit:0.2.2")
+    //implementation("com.appambit:appambit:0.2.2")
+    implementation (name: 'appambit-sdk-release', ext: 'aar')
 }
