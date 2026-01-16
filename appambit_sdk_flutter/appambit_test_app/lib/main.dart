@@ -1,5 +1,6 @@
 import 'package:appambit_sdk_flutter_example/analytics_view.dart';
 import 'package:appambit_sdk_flutter_example/crashes_view.dart';
+import 'package:appambit_sdk_push_notifications/appambit_sdk_push_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:appambit_sdk_flutter/appambit_sdk_flutter.dart';
 
@@ -7,7 +8,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   //Uncomment the line for automatic session management
   //AppAmbitSdk.enableManualSession();
-  AppAmbitSdk.start(appKey: '<YOUR-APPKEY>');
+  AppAmbitSdk.start(appKey: '8f38d38b-e7d6-43fd-a407-bc521de53b9f');
+  PushNotificationsSdk.start();
   runApp(const MyApp());
 }
 class MyApp extends StatelessWidget {
