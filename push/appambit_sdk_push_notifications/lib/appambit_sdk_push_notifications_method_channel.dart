@@ -29,4 +29,9 @@ class MethodChannelAppambitSdkPushNotifications extends AppambitSdkPushNotificat
     return enabled;
   }
 
+  @override
+  Future<bool> requestNotificationPermissionWithResult() async {
+    final bool isGranted = await methodChannel.invokeMethod('requestNotificationPermissionWithResult');
+    return isGranted;
+  }
 }

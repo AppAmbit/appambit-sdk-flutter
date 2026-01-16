@@ -14,18 +14,11 @@ class _CrashesViewState extends State<CrashesView> {
   final TextEditingController _userIdCtrl = TextEditingController(text: UuidApp.generateUuidV4());
   final TextEditingController _emailCtrl = TextEditingController(text: "test@gmail.com");
   final TextEditingController _customLogCtrl = TextEditingController( text: 'Test Log Message');
-  var granted = false;
+  var granted = true;
 
   @override
   void initState() {
     super.initState();
-    _syncNotificationStatus();
-  }
-
-  Future<void> _syncNotificationStatus() async {
-    final enabled = await PushNotificationsSdk.isNotificationsEnabled();
-    if (!mounted) return;
-    setState(() => granted = enabled);
   }
 
   Future<void> _showInfo(String message) async {
@@ -44,23 +37,23 @@ class _CrashesViewState extends State<CrashesView> {
 
   Future<void> _toggleNotifications() async {
     try {
+      var isGranted = await PushNotificationsSdk.requestNotificationPermissionWithResult();
+      if (isGranted) {
+        _showInfo("Notification permission granted by the user.");
+      }
       granted = !granted;
-      PushNotificationsSdk.requestNotificationPermission();
       await PushNotificationsSdk.setNotificationsEnabled(granted);
-
-      final enabled = await PushNotificationsSdk.isNotificationsEnabled();
-
       setState(() {
-        granted = enabled;
+        granted = granted;
       });
 
-      final msg = enabled
+      final msg = granted
           ? 'Push notifications enabled'
           : 'Push notifications disabled';
 
       await _showInfo(msg);
     } catch (e) {
-      await _showInfo('Failed to update notification settings');
+      await _showInfo('Failed to update notification settings: $e');
     }
   }
 

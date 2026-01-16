@@ -47,9 +47,6 @@ class AppambitSdkPushNotificationsPlugin :
                             ActivityCompat.requestPermissions(currentActivity, arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 101)
                         }
                     }
-                    if (currentActivity is ComponentActivity) {
-                        PushNotifications.requestNotificationPermission(currentActivity)
-                    }
                 }
                 result.success(null)
             }
@@ -61,6 +58,17 @@ class AppambitSdkPushNotificationsPlugin :
             "isNotificationsEnabled" -> {
                 val isEnabled = PushNotifications.isNotificationsEnabled(context)
                 result.success(isEnabled)
+            }
+            "requestNotificationPermissionWithResult" -> {
+                val currentActivity = activity
+                if (currentActivity != null) {
+                    if (Build.VERSION.SDK_INT >= 33) {
+                        if (currentActivity.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                            ActivityCompat.requestPermissions(currentActivity, arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 101)
+                        }
+                    }
+                }
+                result.success(null)
             }
             else -> result.notImplemented()
         }

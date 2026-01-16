@@ -19,4 +19,9 @@ class PushNotificationsSdk {
     return AppambitSdkPushNotificationsPlatform.instance
         .isNotificationsEnabled();
   }
+
+  static Future<bool> requestNotificationPermissionWithResult() {
+    return AppambitSdkPushNotificationsPlatform.instance.requestNotificationPermissionWithResult();
+  }
+  
 }

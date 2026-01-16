@@ -24,4 +24,6 @@ abstract class AppambitSdkPushNotificationsPlatform
   Future<void> setNotificationsEnabled(bool enabled);
 
   Future<bool> isNotificationsEnabled();
+
+  Future<bool> requestNotificationPermissionWithResult();
 }
