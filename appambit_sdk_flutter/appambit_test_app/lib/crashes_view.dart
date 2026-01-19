@@ -14,7 +14,9 @@ class _CrashesViewState extends State<CrashesView> {
   final TextEditingController _userIdCtrl = TextEditingController(text: UuidApp.generateUuidV4());
   final TextEditingController _emailCtrl = TextEditingController(text: "test@gmail.com");
   final TextEditingController _customLogCtrl = TextEditingController( text: 'Test Log Message');
-  var granted = true;
+  
+  bool granted = false;
+  bool _hasAttemptedRequest = false;
 
   @override
   void initState() {
@@ -37,24 +39,44 @@ class _CrashesViewState extends State<CrashesView> {
 
   Future<void> _toggleNotifications() async {
     try {
-      var isGranted = await PushNotificationsSdk.requestNotificationPermissionWithResult();
-      if (isGranted) {
-        _showInfo("Notification permission granted by the user.");
+      if (granted) {
+        await PushNotificationsSdk.setNotificationsEnabled(false);
+        setState(() {
+          granted = false;
+          _hasAttemptedRequest = true;
+        });
+        await _showInfo("Push notifications disabled");
+      } else {
+        var isGranted = await PushNotificationsSdk.requestNotificationPermissionWithResult();
+        
+        if (isGranted) {
+           await PushNotificationsSdk.setNotificationsEnabled(true);
+        }
+
+        setState(() {
+          granted = isGranted;
+          _hasAttemptedRequest = true;
+        });
+
+        if (isGranted) {
+           await _showInfo("Notification permission granted and enabled.");
+        } else {
+           await _showInfo("Notification permission denied or not granted.");
+        }
       }
-      granted = !granted;
-      await PushNotificationsSdk.setNotificationsEnabled(granted);
-      setState(() {
-        granted = granted;
-      });
-
-      final msg = granted
-          ? 'Push notifications enabled'
-          : 'Push notifications disabled';
-
-      await _showInfo(msg);
     } catch (e) {
       await _showInfo('Failed to update notification settings: $e');
     }
+  }
+
+  String get _notificationButtonText {
+    if (granted) {
+      return "Disable Push Notifications";
+    }
+    if (_hasAttemptedRequest) {
+       return "Enable Push Notifications";
+    }
+    return "Allow notifications";
   }
 
   Future<void> _didCrashInLastSession() async {
@@ -187,7 +209,7 @@ class _CrashesViewState extends State<CrashesView> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _blueButton(
-              granted ? "Disable Push Notifications" : "Enable Push Notifications",
+              _notificationButtonText,
               _toggleNotifications,
             ),
             const SizedBox(height: 8),

@@ -31,7 +31,21 @@ class MethodChannelAppambitSdkPushNotifications extends AppambitSdkPushNotificat
 
   @override
   Future<bool> requestNotificationPermissionWithResult() async {
-    final bool isGranted = await methodChannel.invokeMethod('requestNotificationPermissionWithResult');
-    return isGranted;
+    final bool? isGranted = await methodChannel.invokeMethod<bool>('requestNotificationPermissionWithResult');
+    return isGranted ?? false;
+  }
+
+  Function(Map<String, dynamic> data)? _customizerCallback;
+
+  @override
+  void setNotificationCustomizer(Function(Map<String, dynamic> data) callback) {
+    _customizerCallback = callback;
+    methodChannel.invokeMethod('setNotificationCustomizer');
+    methodChannel.setMethodCallHandler((call) async {
+       if (call.method == "onNotificationReceived") {
+         final data = Map<String, dynamic>.from(call.arguments);
+         _customizerCallback?.call(data);
+       }
+    });
   }
 }

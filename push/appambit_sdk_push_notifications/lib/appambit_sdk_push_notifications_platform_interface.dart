@@ -26,4 +26,8 @@ abstract class AppambitSdkPushNotificationsPlatform
   Future<bool> isNotificationsEnabled();
 
   Future<bool> requestNotificationPermissionWithResult();
+
+  void setNotificationCustomizer(Function(Map<String, dynamic> data) callback) {
+    throw UnimplementedError('setNotificationCustomizer() has not been implemented.');
+  }
 }

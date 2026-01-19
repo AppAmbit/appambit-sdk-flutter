@@ -9,6 +9,9 @@ void main() async {
   //Uncomment the line for automatic session management
   //AppAmbitSdk.enableManualSession();
   AppAmbitSdk.start(appKey: '8f38d38b-e7d6-43fd-a407-bc521de53b9f');
+  PushNotificationsSdk.setNotificationCustomizer((data) {
+    debugPrint("Notification Data Received: $data");
+  });
   PushNotificationsSdk.start();
   runApp(const MyApp());
 }
