@@ -38,11 +38,12 @@ This SDK is an extension of the core AppAmbit Flutter SDK, providing a simple an
 
 ## Install
 
-To install the library from NPM, run the following commands in your project directory:
+To install the library from Pub.dev, run the following commands in your project directory:
 
 ```bash
 flutter pub add appambit_sdk_flutter
-&
+```
+```bash
 flutter pub add appambit_sdk_push_notifications
 ```
 
