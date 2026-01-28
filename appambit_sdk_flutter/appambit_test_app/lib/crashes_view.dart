@@ -1,6 +1,7 @@
 
 import 'package:appambit_sdk_flutter/appambit_sdk_flutter.dart';
 import 'package:appambit_sdk_flutter_example/utils/uuid_app.dart';
+import 'package:appambit_sdk_push_notifications/appambit_sdk_push_notifications.dart';
 import 'package:flutter/material.dart';
 
 class CrashesView extends StatefulWidget {
@@ -13,6 +14,14 @@ class _CrashesViewState extends State<CrashesView> {
   final TextEditingController _userIdCtrl = TextEditingController(text: UuidApp.generateUuidV4());
   final TextEditingController _emailCtrl = TextEditingController(text: "test@gmail.com");
   final TextEditingController _customLogCtrl = TextEditingController( text: 'Test Log Message');
+  
+  bool granted = false;
+  bool _hasAttemptedRequest = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   Future<void> _showInfo(String message) async {
     if (!mounted) return;
@@ -26,6 +35,48 @@ class _CrashesViewState extends State<CrashesView> {
         ],
       ),
     );
+  }
+
+  Future<void> _toggleNotifications() async {
+    try {
+      if (granted) {
+        await PushNotificationsSdk.setNotificationsEnabled(false);
+        setState(() {
+          granted = false;
+          _hasAttemptedRequest = true;
+        });
+        await _showInfo("Push notifications disabled");
+      } else {
+        var isGranted = await PushNotificationsSdk.requestNotificationPermissionWithResult();
+        
+        if (isGranted) {
+           await PushNotificationsSdk.setNotificationsEnabled(true);
+        }
+
+        setState(() {
+          granted = isGranted;
+          _hasAttemptedRequest = true;
+        });
+
+        if (isGranted) {
+           await _showInfo("Notification permission granted and enabled.");
+        } else {
+           await _showInfo("Notification permission denied or not granted.");
+        }
+      }
+    } catch (e) {
+      await _showInfo('Failed to update notification settings: $e');
+    }
+  }
+
+  String get _notificationButtonText {
+    if (granted) {
+      return "Disable Push Notifications";
+    }
+    if (_hasAttemptedRequest) {
+       return "Enable Push Notifications";
+    }
+    return "Allow notifications";
   }
 
   Future<void> _didCrashInLastSession() async {
@@ -157,6 +208,12 @@ class _CrashesViewState extends State<CrashesView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            _blueButton(
+              _notificationButtonText,
+              _toggleNotifications,
+            ),
+            const SizedBox(height: 8),
+
             _blueButton('Did the app crash during your last session?', _didCrashInLastSession),
             const SizedBox(height: 8),
 

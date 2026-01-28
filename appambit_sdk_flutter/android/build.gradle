@@ -14,10 +14,14 @@ buildscript {
     }
 }
 
-allprojects {
+def appambitLibPath = project.file('libs')
+rootProject.allprojects {
     repositories {
         google()
         mavenCentral()
+        flatDir {
+            dirs appambitLibPath
+        }
     }
 }
 
