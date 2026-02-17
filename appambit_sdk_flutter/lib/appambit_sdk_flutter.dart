@@ -258,6 +258,32 @@ class AppAmbitSdk extends NavigatorObserver {
     if (!seen) _recentErrorDigests[d] = now;
     return seen;
   }
+
+  /// Remote Config
+  static Future<bool> enable() {
+    _ensureRegistered();
+    return AppAmbitSdkFlutterPlatform.instance.enable();
+  }
+
+  static Future<String?> getString(String key) {
+    _ensureRegistered();
+    return AppAmbitSdkFlutterPlatform.instance.getString(key);
+  }
+
+  static Future<bool> getBoolean(String key) {
+    _ensureRegistered();
+    return AppAmbitSdkFlutterPlatform.instance.getBoolean(key);
+  }
+
+  static Future<int> getInt(String key) {
+    _ensureRegistered();
+    return AppAmbitSdkFlutterPlatform.instance.getInt(key);
+  }
+
+  static Future<double> getDouble(String key) {
+    _ensureRegistered();
+    return AppAmbitSdkFlutterPlatform.instance.getDouble(key);
+  }
 }
 
 class _CallSite {

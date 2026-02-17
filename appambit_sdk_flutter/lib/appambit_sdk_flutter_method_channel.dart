@@ -10,6 +10,7 @@ class MethodChannelAppAmbitSdkFlutter extends AppAmbitSdkFlutterPlatform {
   final MethodChannel _core = const MethodChannel('com.appambit/appambitcore');
   final MethodChannel _analytics = const MethodChannel('com.appambit/analytics');
   final MethodChannel _crashes = const MethodChannel('com.appambit/crashes');
+  final MethodChannel _remoteConfig = const MethodChannel('com.appambit/remoteconfig');
 
   MethodChannelAppAmbitSdkFlutter._internal() : super() {
     AppAmbitSdkFlutterPlatform.instance = this;
@@ -90,9 +91,38 @@ class MethodChannelAppAmbitSdkFlutter extends AppAmbitSdkFlutterPlatform {
   }
 
   @override
-  @override
   Future<void> logErrorMessage(Map<String, dynamic> payload) {
     return _crashes.invokeMethod<void>('logErrorMessage', payload);
+  }
+
+  // Remote Config
+  @override
+  Future<bool> enable() async {
+    final res = await _remoteConfig.invokeMethod<bool>('enable');
+    return res ?? false;
+  }
+
+  @override
+  Future<String?> getString(String key) async {
+    return _remoteConfig.invokeMethod<String>('getString', {'key': key});
+  }
+
+  @override
+  Future<bool> getBoolean(String key) async {
+    final res = await _remoteConfig.invokeMethod<bool>('getBoolean', {'key': key});
+    return res ?? false;
+  }
+
+  @override
+  Future<int> getInt(String key) async {
+    final res = await _remoteConfig.invokeMethod<int>('getInt', {'key': key});
+    return res ?? 0;
+  }
+
+  @override
+  Future<double> getDouble(String key) async {
+    final res = await _remoteConfig.invokeMethod<double>('getDouble', {'key': key});
+    return res ?? 0.0;
   }
 }
 
@@ -100,6 +130,7 @@ void registerMethodChannelImplementation() {
   try {
     final _ = AppAmbitSdkFlutterPlatform.instance;
     return;
+  // ignore: empty_catches
   } on UnimplementedError {
   }
 

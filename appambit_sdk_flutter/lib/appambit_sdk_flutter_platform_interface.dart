@@ -62,4 +62,25 @@ abstract class AppAmbitSdkFlutterPlatform extends PlatformInterface {
   Future<void> logErrorMessage(Map<String, dynamic> payload) {
     throw UnimplementedError('logErrorMessage() not implemented');
   }
+
+  /// Remote Config
+  Future<bool> enable() {
+    throw UnimplementedError('enable() not implemented');
+  }
+
+  Future<String?> getString(String key) {
+    throw UnimplementedError('getString() not implemented');
+  }
+
+  Future<bool> getBoolean(String key) {
+    throw UnimplementedError('getBoolean() not implemented');
+  }
+
+  Future<int> getInt(String key) {
+    throw UnimplementedError('getInt() not implemented');
+  }
+
+  Future<double> getDouble(String key) {
+    throw UnimplementedError('getDouble() not implemented');
+  }
 }
