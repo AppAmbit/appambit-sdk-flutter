@@ -19,28 +19,27 @@ public class AppAmbitSdkFlutterPlugin: NSObject, FlutterPlugin {
     super.init()
   }
 
-  public static func register(with register: FlutterPluginRegister) {
+  public static func register(with registrar: FlutterPluginRegistrar) {
     // Core
-    let coreChannel = FlutterMethodChannel(name: coreChannelName, binaryMessenger: register.messenger())
+    let coreChannel = FlutterMethodChannel(name: coreChannelName, binaryMessenger: registrar.messenger())
     let coreInstance = AppAmbitSdkFlutterPlugin(scope: .core)
-    register.addMethodCallDelegate(coreInstance, channel: coreChannel)
+    registrar.addMethodCallDelegate(coreInstance, channel: coreChannel)
 
     // Analytics
-    let analyticsChannel = FlutterMethodChannel(name: analyticsChannelName, binaryMessenger: register.messenger())
+    let analyticsChannel = FlutterMethodChannel(name: analyticsChannelName, binaryMessenger: registrar.messenger())
     let analyticsInstance = AppAmbitSdkFlutterPlugin(scope: .analytics)
-    register.addMethodCallDelegate(analyticsInstance, channel: analyticsChannel)
+    registrar.addMethodCallDelegate(analyticsInstance, channel: analyticsChannel)
 
     // Crashes
-    let crashesChannel = FlutterMethodChannel(name: crashesChannelName, binaryMessenger: register.messenger())
+    let crashesChannel = FlutterMethodChannel(name: crashesChannelName, binaryMessenger: registrar.messenger())
     let crashesInstance = AppAmbitSdkFlutterPlugin(scope: .crashes)
-    register.addMethodCallDelegate(crashesInstance, channel: crashesChannel)
+    registrar.addMethodCallDelegate(crashesInstance, channel: crashesChannel)
     
     // Remote Config
-    let remoteConfigChannel = FlutterMethodChannel(name: remoteConfigChannelName, binaryMessenger: register.messenger())
+    let remoteConfigChannel = FlutterMethodChannel(name: remoteConfigChannelName, binaryMessenger: registrar.messenger())
     let remoteConfigInstance = AppAmbitSdkFlutterPlugin(scope: .remoteConfig)
-    register.addMethodCallDelegate(remoteConfigInstance, channel: remoteConfigChannel)
+    registrar.addMethodCallDelegate(remoteConfigInstance, channel: remoteConfigChannel)
   }
-
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch scope {
@@ -103,7 +102,6 @@ public class AppAmbitSdkFlutterPlugin: NSObject, FlutterPlugin {
     case .remoteConfig:
         switch call.method {
         case "enable":              RemoteConfigFlutter.enable(result: result)
-        case "fetchAndStoreConfig": RemoteConfigFlutter.fetchAndStoreConfig(result: result)
         case "getString":           RemoteConfigFlutter.getString(args: call.arguments, result: result)
         case "getBoolean":          RemoteConfigFlutter.getBoolean(args: call.arguments, result: result)
         case "getInt":              RemoteConfigFlutter.getInt(args: call.arguments, result: result)

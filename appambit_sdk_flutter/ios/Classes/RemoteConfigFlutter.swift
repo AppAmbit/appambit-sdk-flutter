@@ -6,7 +6,6 @@ public class RemoteConfigFlutter {
     
     public static func enable(result: @escaping FlutterResult) {
         RemoteConfig.enable()
-        RemoteConfig.fetchAndStoreConfig()
         result(true)
     }
     

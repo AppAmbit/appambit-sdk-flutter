@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:appambit_sdk_flutter/appambit_sdk_flutter.dart';
 
 class RemoteConfigView extends StatefulWidget {
-  const RemoteConfigView({super.key});
+  final bool isActive;
+  const RemoteConfigView({super.key, this.isActive = false});
 
   @override
   State<RemoteConfigView> createState() => _RemoteConfigViewState();
@@ -14,11 +15,22 @@ class _RemoteConfigViewState extends State<RemoteConfigView> {
   int _discount = 0;
   double _maxUpload = 0.0;
   bool _isLoading = true;
+  bool _hasFetched = false;
 
   @override
   void initState() {
     super.initState();
-    _fetchConfig();
+    if (widget.isActive) {
+      _fetchConfig();
+    }
+  }
+
+  @override
+  void didUpdateWidget(RemoteConfigView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isActive && !_hasFetched) {
+      _fetchConfig();
+    }
   }
 
   Future<void> _fetchConfig() async {
@@ -35,6 +47,7 @@ class _RemoteConfigViewState extends State<RemoteConfigView> {
         _discount = discount;
         _maxUpload = maxUpload;
         _isLoading = false;
+        _hasFetched = true;
       });
     }
   }

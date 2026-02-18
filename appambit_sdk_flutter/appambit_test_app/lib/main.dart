@@ -1,7 +1,7 @@
 import 'package:appambit_sdk_flutter_example/analytics_view.dart';
 import 'package:appambit_sdk_flutter_example/crashes_view.dart';
 import 'package:appambit_sdk_flutter_example/remote_config_view.dart';
-import 'package:appambit_sdk_push_notifications/appambit_sdk_push_notifications.dart';
+//import 'package:appambit_sdk_push_notifications/appambit_sdk_push_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:appambit_sdk_flutter/appambit_sdk_flutter.dart';
 
@@ -11,10 +11,10 @@ void main() async {
   //AppAmbitSdk.enableManualSession();
   AppAmbitSdk.enable();
   AppAmbitSdk.start(appKey: '31c5d550-0ac9-46fe-b33b-144a5ab25215');
-  PushNotificationsSdk.setNotificationCustomizer((data) {
-    debugPrint("Notification Data Received: $data");
-  });
-  PushNotificationsSdk.start();
+  // PushNotificationsSdk.setNotificationCustomizer((data) {
+  //   debugPrint("Notification Data Received: $data");
+  // });
+  // PushNotificationsSdk.start();
   runApp(const MyApp());
 }
 class MyApp extends StatelessWidget {
@@ -40,10 +40,10 @@ class MainBottomNavPage extends StatefulWidget {
 class _MainBottomNavPageState extends State<MainBottomNavPage> {
   int _index = 0;
 
-  final _pages = const [
-    CrashesView(),
-    AnalyticsView(),
-    RemoteConfigView(),
+  List<Widget> get _pages => [
+    const CrashesView(),
+    const AnalyticsView(),
+    RemoteConfigView(isActive: _index == 2),
   ];
 
   @override
