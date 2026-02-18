@@ -10,7 +10,7 @@ void main() async {
   //Uncomment the line for automatic session management
   //AppAmbitSdk.enableManualSession();
   AppAmbitSdk.enable();
-  AppAmbitSdk.start(appKey: '31c5d550-0ac9-46fe-b33b-144a5ab25215');
+  AppAmbitSdk.start(appKey: '<YOUR-APPKEY>');
   // PushNotificationsSdk.setNotificationCustomizer((data) {
   //   debugPrint("Notification Data Received: $data");
   // });
