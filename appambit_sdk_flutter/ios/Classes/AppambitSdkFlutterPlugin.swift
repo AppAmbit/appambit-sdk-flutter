@@ -1,6 +1,6 @@
 import Flutter
 import UIKit
-import AppAmbitSdk
+import AppAmbit
 
 public class AppAmbitSdkFlutterPlugin: NSObject, FlutterPlugin {
 

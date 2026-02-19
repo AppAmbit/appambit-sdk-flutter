@@ -70,5 +70,5 @@ android {
 }
 
 dependencies {
-    implementation (name: 'appambit-sdk-release', ext: 'aar')
+    implementation 'com.appambit:appambit:0.3.0'
 }
