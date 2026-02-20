@@ -9,7 +9,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   //Uncomment the line for automatic session management
   //AppAmbitSdk.enableManualSession();
-  AppAmbitSdk.enable();
+  AppAmbitSdk.enableConfig();
   AppAmbitSdk.start(appKey: '<YOUR-APPKEY>');
   // PushNotificationsSdk.setNotificationCustomizer((data) {
   //   debugPrint("Notification Data Received: $data");

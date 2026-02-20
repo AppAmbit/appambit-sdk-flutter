@@ -260,7 +260,7 @@ class AppAmbitSdk extends NavigatorObserver {
   }
 
   /// Remote Config
-  static Future<bool> enable() {
+  static Future<bool> enableConfig() {
     _ensureRegistered();
     return AppAmbitSdkFlutterPlatform.instance.enable();
   }
