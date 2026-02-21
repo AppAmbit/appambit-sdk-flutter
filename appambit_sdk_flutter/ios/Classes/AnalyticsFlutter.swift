@@ -1,6 +1,6 @@
 import Foundation
 import Flutter
-import AppAmbitSdk
+import AppAmbit
 
 final class AnalyticsFlutter {
 

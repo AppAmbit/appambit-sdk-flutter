@@ -15,6 +15,7 @@ void main() async {
   PushNotificationsSdk.start();
   runApp(const MyApp());
 }
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
   @override
@@ -38,10 +39,7 @@ class MainBottomNavPage extends StatefulWidget {
 class _MainBottomNavPageState extends State<MainBottomNavPage> {
   int _index = 0;
 
-  final _pages = const [
-    CrashesView(),
-    AnalyticsView(),
-  ];
+  final _pages = const [CrashesView(), AnalyticsView()];
 
   @override
   Widget build(BuildContext context) {
@@ -52,11 +50,16 @@ class _MainBottomNavPageState extends State<MainBottomNavPage> {
         currentIndex: _index,
         onTap: (i) => setState(() => _index = i),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.warning_amber), label: 'Crashes'),
-          BottomNavigationBarItem(icon: Icon(Icons.analytics), label: 'Analytics'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.warning_amber),
+            label: 'Crashes',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.analytics),
+            label: 'Analytics',
+          ),
         ],
       ),
     );
   }
 }
-

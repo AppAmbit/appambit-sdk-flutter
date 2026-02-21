@@ -2,13 +2,13 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'appambit_sdk_push_notifications_method_channel.dart';
 
-abstract class AppambitSdkPushNotificationsPlatform
-    extends PlatformInterface {
+abstract class AppambitSdkPushNotificationsPlatform extends PlatformInterface {
   AppambitSdkPushNotificationsPlatform() : super(token: _token);
 
   static final Object _token = Object();
 
-  static AppambitSdkPushNotificationsPlatform _instance = MethodChannelAppambitSdkPushNotifications();
+  static AppambitSdkPushNotificationsPlatform _instance =
+      MethodChannelAppambitSdkPushNotifications();
 
   static AppambitSdkPushNotificationsPlatform get instance => _instance;
 
@@ -28,6 +28,10 @@ abstract class AppambitSdkPushNotificationsPlatform
   Future<bool> requestNotificationPermissionWithResult();
 
   void setNotificationCustomizer(Function(Map<String, dynamic> data) callback) {
-    throw UnimplementedError('setNotificationCustomizer() has not been implemented.');
+    throw UnimplementedError(
+      'setNotificationCustomizer() has not been implemented.',
+    );
   }
+
+  Future<bool> hasNotificationPermission();
 }
