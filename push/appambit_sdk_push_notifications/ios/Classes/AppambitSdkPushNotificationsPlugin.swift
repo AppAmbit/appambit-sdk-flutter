@@ -69,8 +69,6 @@ public class AppambitSdkPushNotificationsPlugin: NSObject, FlutterPlugin {
             }
             result(nil)
 
-            result(nil)
-
         case "hasNotificationPermission":
             let hasPermission = PushNotifications.hasNotificationPermission()
             result(hasPermission)
