@@ -21,11 +21,20 @@ class PushNotificationsSdk {
   }
 
   static Future<bool> requestNotificationPermissionWithResult() {
-    return AppambitSdkPushNotificationsPlatform.instance.requestNotificationPermissionWithResult();
+    return AppambitSdkPushNotificationsPlatform.instance
+        .requestNotificationPermissionWithResult();
   }
 
-  static void setNotificationCustomizer(Function(Map<String, dynamic> data) callback) {
-    AppambitSdkPushNotificationsPlatform.instance.setNotificationCustomizer(callback);
+  static void setNotificationCustomizer(
+    Function(Map<String, dynamic> data) callback,
+  ) {
+    AppambitSdkPushNotificationsPlatform.instance.setNotificationCustomizer(
+      callback,
+    );
   }
-  
+
+  static Future<bool> hasNotificationPermission() {
+    return AppambitSdkPushNotificationsPlatform.instance
+        .hasNotificationPermission();
+  }
 }
