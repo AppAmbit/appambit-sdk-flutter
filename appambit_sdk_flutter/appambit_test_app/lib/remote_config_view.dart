@@ -37,7 +37,7 @@ class _RemoteConfigViewState extends State<RemoteConfigView> {
     // Get values
     final data = await AppAmbitSdk.getString("data");
     final showBanner = await AppAmbitSdk.getBoolean("banner");
-    final discount = await AppAmbitSdk.getInt("discount");
+    final discount = await AppAmbitSdk.getLong("discount");
     final maxUpload = await AppAmbitSdk.getDouble("max_upload");
 
     if (mounted) {
@@ -161,29 +161,36 @@ class _RemoteConfigViewState extends State<RemoteConfigView> {
         padding: const EdgeInsets.all(20),
         child: Row(
           children: [
+            const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "SPECIAL OFFER",
+                  style: TextStyle(
+                    color: Color(0xFF2E7D32),
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.1,
+                  ),
+                ),
+                SizedBox(height: 4),
+              ],
+            ),
+            const SizedBox(width: 16),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "SPECIAL OFFER",
-                    style: TextStyle(
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    "$_discount% OFF",
+                    style: const TextStyle(
                       color: Color(0xFF2E7D32),
-                      fontSize: 12,
+                      fontSize: 26,
                       fontWeight: FontWeight.bold,
-                      letterSpacing: 0.1,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                ],
-              ),
-            ),
-            Text(
-              "$_discount% OFF",
-              style: const TextStyle(
-                color: Color(0xFF2E7D32),
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],

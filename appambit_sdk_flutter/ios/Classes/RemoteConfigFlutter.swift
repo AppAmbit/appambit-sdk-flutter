@@ -29,13 +29,13 @@ public class RemoteConfigFlutter {
         result(value)
     }
     
-    public static func getInt(args: Any?, result: @escaping FlutterResult) {
+    public static func getLong(args: Any?, result: @escaping FlutterResult) {
         guard let argsDict = args as? [String: Any],
               let key = argsDict["key"] as? String else {
             result(FlutterError(code: "BAD_ARGS", message: "Missing or invalid 'key'", details: nil))
             return
         }
-        let value = RemoteConfig.getInt(key)
+        let value = RemoteConfig.getLong(key)
         result(value)
     }
     

@@ -38,13 +38,13 @@ class RemoteConfigFlutter {
                         result.success(value)
                     }
                 }
-                "getInt" -> {
+                "getLong" -> {
                     val args = call.arguments as? Map<*, *>
                     val key = args?.get("key") as? String
                     if (key == null) {
                         result.error("BAD_ARGS", "Missing 'key'", null)
                     } else {
-                        val value = RemoteConfig.getInt(key)
+                        val value = RemoteConfig.getLong(key)
                         result.success(value)
                     }
                 }

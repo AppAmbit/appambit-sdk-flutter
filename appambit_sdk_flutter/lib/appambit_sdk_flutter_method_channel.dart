@@ -114,8 +114,8 @@ class MethodChannelAppAmbitSdkFlutter extends AppAmbitSdkFlutterPlatform {
   }
 
   @override
-  Future<int> getInt(String key) async {
-    final res = await _remoteConfig.invokeMethod<int>('getInt', {'key': key});
+  Future<int> getLong(String key) async {
+    final res = await _remoteConfig.invokeMethod<int>('getLong', {'key': key});
     return res ?? 0;
   }
 

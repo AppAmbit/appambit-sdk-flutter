@@ -275,9 +275,9 @@ class AppAmbitSdk extends NavigatorObserver {
     return AppAmbitSdkFlutterPlatform.instance.getBoolean(key);
   }
 
-  static Future<int> getInt(String key) {
+  static Future<int> getLong(String key) {
     _ensureRegistered();
-    return AppAmbitSdkFlutterPlatform.instance.getInt(key);
+    return AppAmbitSdkFlutterPlatform.instance.getLong(key);
   }
 
   static Future<double> getDouble(String key) {

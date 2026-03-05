@@ -76,8 +76,8 @@ abstract class AppAmbitSdkFlutterPlatform extends PlatformInterface {
     throw UnimplementedError('getBoolean() not implemented');
   }
 
-  Future<int> getInt(String key) {
-    throw UnimplementedError('getInt() not implemented');
+  Future<int> getLong(String key) {
+    throw UnimplementedError('getLong() not implemented');
   }
 
   Future<double> getDouble(String key) {

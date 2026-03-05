@@ -104,7 +104,7 @@ public class AppAmbitSdkFlutterPlugin: NSObject, FlutterPlugin {
         case "enable":              RemoteConfigFlutter.enable(result: result)
         case "getString":           RemoteConfigFlutter.getString(args: call.arguments, result: result)
         case "getBoolean":          RemoteConfigFlutter.getBoolean(args: call.arguments, result: result)
-        case "getInt":              RemoteConfigFlutter.getInt(args: call.arguments, result: result)
+        case "getLong":             RemoteConfigFlutter.getLong(args: call.arguments, result: result)
         case "getDouble":           RemoteConfigFlutter.getDouble(args: call.arguments, result: result)
         default:
             result(FlutterMethodNotImplemented)
