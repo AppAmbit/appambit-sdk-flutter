@@ -1,7 +1,7 @@
 import 'package:appambit_sdk_flutter_example/analytics_view.dart';
 import 'package:appambit_sdk_flutter_example/crashes_view.dart';
 import 'package:appambit_sdk_flutter_example/remote_config_view.dart';
-//import 'package:appambit_sdk_push_notifications/appambit_sdk_push_notifications.dart';
+import 'package:appambit_sdk_push_notifications/appambit_sdk_push_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:appambit_sdk_flutter/appambit_sdk_flutter.dart';
 
@@ -11,12 +11,13 @@ void main() async {
   //AppAmbitSdk.enableManualSession();
   AppAmbitSdk.enableConfig();
   AppAmbitSdk.start(appKey: '<YOUR-APPKEY>');
-  // PushNotificationsSdk.setNotificationCustomizer((data) {
-  //   debugPrint("Notification Data Received: $data");
-  // });
-  // PushNotificationsSdk.start();
+  PushNotificationsSdk.setNotificationCustomizer((data) {
+    debugPrint("Notification Data Received: $data");
+  });
+  PushNotificationsSdk.start();
   runApp(const MyApp());
 }
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
   @override
@@ -72,4 +73,3 @@ class _MainBottomNavPageState extends State<MainBottomNavPage> {
     }
   }
 }
-
