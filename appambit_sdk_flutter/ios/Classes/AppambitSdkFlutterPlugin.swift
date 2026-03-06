@@ -8,9 +8,10 @@ public class AppAmbitSdkFlutterPlugin: NSObject, FlutterPlugin {
   private static let coreChannelName      = "com.appambit/appambitcore"
   private static let analyticsChannelName = "com.appambit/analytics"
   private static let crashesChannelName   = "com.appambit/crashes"
+  private static let remoteConfigChannelName = "com.appambit/remoteconfig"
 
   
-  private enum Scope { case core, analytics, crashes }
+  private enum Scope { case core, analytics, crashes, remoteConfig }
   private let scope: Scope
 
   private init(scope: Scope) {
@@ -33,8 +34,12 @@ public class AppAmbitSdkFlutterPlugin: NSObject, FlutterPlugin {
     let crashesChannel = FlutterMethodChannel(name: crashesChannelName, binaryMessenger: registrar.messenger())
     let crashesInstance = AppAmbitSdkFlutterPlugin(scope: .crashes)
     registrar.addMethodCallDelegate(crashesInstance, channel: crashesChannel)
+    
+    // Remote Config
+    let remoteConfigChannel = FlutterMethodChannel(name: remoteConfigChannelName, binaryMessenger: registrar.messenger())
+    let remoteConfigInstance = AppAmbitSdkFlutterPlugin(scope: .remoteConfig)
+    registrar.addMethodCallDelegate(remoteConfigInstance, channel: remoteConfigChannel)
   }
-
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch scope {
@@ -93,6 +98,17 @@ public class AppAmbitSdkFlutterPlugin: NSObject, FlutterPlugin {
       default:
         result(FlutterMethodNotImplemented)
       }
+      
+    case .remoteConfig:
+        switch call.method {
+        case "enable":              RemoteConfigFlutter.enable(result: result)
+        case "getString":           RemoteConfigFlutter.getString(args: call.arguments, result: result)
+        case "getBoolean":          RemoteConfigFlutter.getBoolean(args: call.arguments, result: result)
+        case "getLong":             RemoteConfigFlutter.getLong(args: call.arguments, result: result)
+        case "getDouble":           RemoteConfigFlutter.getDouble(args: call.arguments, result: result)
+        default:
+            result(FlutterMethodNotImplemented)
+        }
     }
-  }
+}
 }

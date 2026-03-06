@@ -1,5 +1,6 @@
 import 'package:appambit_sdk_flutter_example/analytics_view.dart';
 import 'package:appambit_sdk_flutter_example/crashes_view.dart';
+import 'package:appambit_sdk_flutter_example/remote_config_view.dart';
 import 'package:appambit_sdk_push_notifications/appambit_sdk_push_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:appambit_sdk_flutter/appambit_sdk_flutter.dart';
@@ -8,6 +9,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   //Uncomment the line for automatic session management
   //AppAmbitSdk.enableManualSession();
+  AppAmbitSdk.enableConfig();
   AppAmbitSdk.start(appKey: '<YOUR-APPKEY>');
   PushNotificationsSdk.setNotificationCustomizer((data) {
     debugPrint("Notification Data Received: $data");
@@ -39,27 +41,35 @@ class MainBottomNavPage extends StatefulWidget {
 class _MainBottomNavPageState extends State<MainBottomNavPage> {
   int _index = 0;
 
-  final _pages = const [CrashesView(), AnalyticsView()];
+  List<Widget> get _pages => [
+    const CrashesView(),
+    const AnalyticsView(),
+    RemoteConfigView(isActive: _index == 2),
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_index == 0 ? 'Crashes' : 'Analytics')),
+      appBar: AppBar(title: Text(_getTitle())),
       body: IndexedStack(index: _index, children: _pages),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _index,
         onTap: (i) => setState(() => _index = i),
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.warning_amber),
-            label: 'Crashes',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.analytics),
-            label: 'Analytics',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.warning_amber), label: 'Crashes'),
+          BottomNavigationBarItem(icon: Icon(Icons.analytics), label: 'Analytics'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings_remote), label: 'Remote Config'),
         ],
       ),
     );
+  }
+
+  String _getTitle() {
+    switch (_index) {
+      case 0: return 'Crashes';
+      case 1: return 'Analytics';
+      case 2: return 'Remote Config';
+      default: return 'AppAmbit SDK';
+    }
   }
 }

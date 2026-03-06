@@ -68,11 +68,10 @@ class _CrashesViewState extends State<CrashesView> {
         });
         await _showInfo("Push notifications disabled");
       } else {
-        var isGranted =
-            await PushNotificationsSdk.requestNotificationPermissionWithResult();
-
+        var isGranted = await PushNotificationsSdk.requestNotificationPermissionWithResult();
+        
         if (isGranted) {
-          await PushNotificationsSdk.setNotificationsEnabled(true);
+           await PushNotificationsSdk.setNotificationsEnabled(true);
         }
 
         setState(() {
@@ -81,9 +80,9 @@ class _CrashesViewState extends State<CrashesView> {
         });
 
         if (isGranted) {
-          await _showInfo("Notification permission granted and enabled.");
+           await _showInfo("Notification permission granted and enabled.");
         } else {
-          await _showInfo("Notification permission denied or not granted.");
+           await _showInfo("Notification permission denied or not granted.");
         }
       }
     } catch (e) {
@@ -236,7 +235,10 @@ class _CrashesViewState extends State<CrashesView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _blueButton(_notificationButtonText, _toggleNotifications),
+            _blueButton(
+              _notificationButtonText,
+              _toggleNotifications,
+            ),
             const SizedBox(height: 8),
 
             _blueButton(

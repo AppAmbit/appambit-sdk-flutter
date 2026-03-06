@@ -1,14 +1,14 @@
 PODS:
   - appambit_sdk_flutter (0.0.1):
-    - AppAmbitSdk
+    - AppAmbitSdk (~> 0.3.1)
     - Flutter
   - appambit_sdk_push_notifications (0.0.1):
-    - AppAmbitPushNotifications (= 0.3.0)
+    - AppAmbitPushNotifications (= 0.3.1)
     - AppAmbitSdk
     - Flutter
-  - AppAmbitPushNotifications (0.3.0):
+  - AppAmbitPushNotifications (0.3.1):
     - AppAmbitSdk
-  - AppAmbitSdk (0.3.0)
+  - AppAmbitSdk (0.3.1)
   - Flutter (1.0.0)
   - integration_test (0.0.1):
     - Flutter
@@ -35,10 +35,10 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/integration_test/ios"
 
 SPEC CHECKSUMS:
-  appambit_sdk_flutter: 52efac56c9b6f32b8366d047e6ac755aefd2624e
-  appambit_sdk_push_notifications: 05f8efdb8e51648a951faf693cc53af808c0b56a
-  AppAmbitPushNotifications: 7512aa89e351fe5b7c3c849b56029194de3cc9af
-  AppAmbitSdk: fead6acc1859654f50f831000ca527bf7d24533f
+  appambit_sdk_flutter: adb98a2d6ad891e13a1944b59fa2a9044017a045
+  appambit_sdk_push_notifications: 4581a825666c22387292995b82ef5dd4f1e8331b
+  AppAmbitPushNotifications: 24ad7abfa4f4a1d63c4cf730c39ffb5885292717
+  AppAmbitSdk: 62980f349676acded38f450c0978cd8d641af89e
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
 
