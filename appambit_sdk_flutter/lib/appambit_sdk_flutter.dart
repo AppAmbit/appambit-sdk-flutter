@@ -290,11 +290,6 @@ class AppAmbitSdk extends NavigatorObserver {
     return AppAmbitSdkFlutterPlatform.instance.enable();
   }
 
-  static Future<void> disableConfig() {
-    _ensureRegistered();
-    return AppAmbitSdkFlutterPlatform.instance.disable();
-  }
-
   static Future<String?> getString(String key) {
     _ensureRegistered();
     return AppAmbitSdkFlutterPlatform.instance.getString(key);

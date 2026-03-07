@@ -102,7 +102,6 @@ public class AppAmbitSdkFlutterPlugin: NSObject, FlutterPlugin {
     case .remoteConfig:
         switch call.method {
         case "enable":              RemoteConfigFlutter.enable(result: result)
-        case "disable":             RemoteConfigFlutter.disable(result: result)
         case "getString":           RemoteConfigFlutter.getString(args: call.arguments, result: result)
         case "getBoolean":          RemoteConfigFlutter.getBoolean(args: call.arguments, result: result)
         case "getLong":             RemoteConfigFlutter.getLong(args: call.arguments, result: result)

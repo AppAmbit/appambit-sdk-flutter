@@ -8,11 +8,6 @@ public class RemoteConfigFlutter {
         RemoteConfig.enable()
         result(true)
     }
-
-    public static func disable(result: @escaping FlutterResult) {
-        RemoteConfig.disable()
-        result(nil)
-    }
     
     public static func getString(args: Any?, result: @escaping FlutterResult) {
         guard let argsDict = args as? [String: Any],

@@ -112,11 +112,6 @@ class MethodChannelAppAmbitSdkFlutter extends AppAmbitSdkFlutterPlatform {
   }
 
   @override
-  Future<void> disable() async {
-    await _remoteConfig.invokeMethod('disable');
-  }
-
-  @override
   Future<String?> getString(String key) async {
     return _remoteConfig.invokeMethod<String>('getString', {'key': key});
   }

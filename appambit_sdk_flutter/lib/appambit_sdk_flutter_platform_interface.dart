@@ -77,10 +77,6 @@ abstract class AppAmbitSdkFlutterPlatform extends PlatformInterface {
     throw UnimplementedError('enable() not implemented');
   }
 
-  Future<void> disable() {
-    throw UnimplementedError('disable() not implemented');
-  }
-
   Future<String?> getString(String key) {
     throw UnimplementedError('getString() not implemented');
   }
