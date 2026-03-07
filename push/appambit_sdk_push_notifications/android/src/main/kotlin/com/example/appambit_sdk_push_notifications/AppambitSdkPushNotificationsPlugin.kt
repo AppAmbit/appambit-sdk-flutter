@@ -79,6 +79,10 @@ class AppambitSdkPushNotificationsPlugin :
                 }
                 result.success(null)
             }
+            "hasNotificationPermission" -> {
+                val hasPermission = PushNotifications.hasNotificationPermission(context)
+                result.success(hasPermission)
+            }
             else -> result.notImplemented()
         }
     }
