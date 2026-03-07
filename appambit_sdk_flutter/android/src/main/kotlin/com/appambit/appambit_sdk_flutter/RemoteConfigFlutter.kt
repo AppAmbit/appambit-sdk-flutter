@@ -18,6 +18,10 @@ class RemoteConfigFlutter {
                     val enabled = RemoteConfig.enable()
                     result.success(enabled)
                 }
+                "disable" -> {
+                    RemoteConfig.disable()
+                    result.success(null)
+                }
                 "getString" -> {
                     val args = call.arguments as? Map<*, *>
                     val key = args?.get("key") as? String

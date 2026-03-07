@@ -10,7 +10,7 @@ void main() async {
   //Uncomment the line for automatic session management
   //AppAmbitSdk.enableManualSession();
   AppAmbitSdk.enableConfig();
-  AppAmbitSdk.start(appKey: '<YOUR-APPKEY>');
+  AppAmbitSdk.start(appKey: '57b445aa-7f2c-4d5a-b13b-85d29d3c8172');
   PushNotificationsSdk.setNotificationCustomizer((data) {
     debugPrint("Notification Data Received: $data");
   });
@@ -56,9 +56,18 @@ class _MainBottomNavPageState extends State<MainBottomNavPage> {
         currentIndex: _index,
         onTap: (i) => setState(() => _index = i),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.warning_amber), label: 'Crashes'),
-          BottomNavigationBarItem(icon: Icon(Icons.analytics), label: 'Analytics'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings_remote), label: 'Remote Config'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.warning_amber),
+            label: 'Crashes',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.analytics),
+            label: 'Analytics',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings_remote),
+            label: 'Remote Config',
+          ),
         ],
       ),
     );
@@ -66,10 +75,14 @@ class _MainBottomNavPageState extends State<MainBottomNavPage> {
 
   String _getTitle() {
     switch (_index) {
-      case 0: return 'Crashes';
-      case 1: return 'Analytics';
-      case 2: return 'Remote Config';
-      default: return 'AppAmbit SDK';
+      case 0:
+        return 'Crashes';
+      case 1:
+        return 'Analytics';
+      case 2:
+        return 'Remote Config';
+      default:
+        return 'AppAmbit SDK';
     }
   }
 }
