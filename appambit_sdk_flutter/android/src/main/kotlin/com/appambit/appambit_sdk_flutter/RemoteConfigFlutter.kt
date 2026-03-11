@@ -15,8 +15,8 @@ class RemoteConfigFlutter {
         channel.setMethodCallHandler { call, result ->
             when (call.method) {
                 "enable" -> {
-                    val enabled = RemoteConfig.enable()
-                    result.success(enabled)
+                    RemoteConfig.enable()
+                    result.success(true)
                 }
                 "getString" -> {
                     val args = call.arguments as? Map<*, *>
