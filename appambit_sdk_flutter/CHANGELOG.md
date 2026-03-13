@@ -7,6 +7,7 @@
 ### AppAmbit SDK
 
 * **[Feature]** Added Remote Config support to AppAmbit, allowing dynamic configuration of app behavior without requiring app updates.
+* **[Feature]** Added option to send breadcrumbs only on crashes to improve performance and resource efficiency.
 
 ## Version 0.1.0
 
