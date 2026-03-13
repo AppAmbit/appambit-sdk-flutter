@@ -7,14 +7,14 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.1.0"
+    version: "0.2.0"
   appambit_sdk_push_notifications:
     dependency: "direct main"
     description:
       path: "../../push/appambit_sdk_push_notifications"
       relative: true
     source: path
-    version: "0.0.1"
+    version: "0.2.0"
   async:
     dependency: transitive
     description:
