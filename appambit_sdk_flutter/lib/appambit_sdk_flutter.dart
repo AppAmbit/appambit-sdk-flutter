@@ -30,7 +30,9 @@ class AppAmbitSdk extends NavigatorObserver {
       return;
     }
 
-    AppAmbitSdkFlutterPlatform.instance.addBreadcrumb('Push ${_describeRoute(route)}');
+    AppAmbitSdkFlutterPlatform.instance.addBreadcrumb(
+      'Push ${_describeRoute(route)}',
+    );
   }
 
   @override
@@ -39,7 +41,9 @@ class AppAmbitSdk extends NavigatorObserver {
 
     if (!_isPageRoute(newRoute)) return;
 
-    AppAmbitSdkFlutterPlatform.instance.addBreadcrumb('Replaced $oldRoute - $newRoute');
+    AppAmbitSdkFlutterPlatform.instance.addBreadcrumb(
+      'Replaced $oldRoute - $newRoute',
+    );
   }
 
   @override
@@ -48,11 +52,13 @@ class AppAmbitSdk extends NavigatorObserver {
 
     if (!_isPageRoute(route)) return;
 
-    AppAmbitSdkFlutterPlatform.instance.addBreadcrumb('Pop ${_describeRoute(route)}');
+    AppAmbitSdkFlutterPlatform.instance.addBreadcrumb(
+      'Pop ${_describeRoute(route)}',
+    );
   }
 
   /// Starts the core SDK with the provided app key.
-  static Future<void> start({ required String appKey }) async {
+  static Future<void> start({required String appKey}) async {
     _ensureRegistered();
     await AppAmbitSdkFlutterPlatform.instance.startCore(appKey: appKey);
     _installGlobalErrorHooks();
@@ -140,7 +146,8 @@ class AppAmbitSdk extends NavigatorObserver {
         : _stringify(exception);
 
     final StackTrace effectiveStack =
-        stackTrace ?? (exception is Error && exception.stackTrace != null
+        stackTrace ??
+        (exception is Error && exception.stackTrace != null
             ? exception.stackTrace!
             : StackTrace.current);
 
@@ -184,9 +191,14 @@ class AppAmbitSdk extends NavigatorObserver {
 
     final bool userProvidedMessage = message != null && message.isNotEmpty;
 
-    final bool hasExceptionLike = (exception != null) || (stackStr != null && stackStr.isNotEmpty);
+    final bool hasExceptionLike =
+        (exception != null) || (stackStr != null && stackStr.isNotEmpty);
     if (hasExceptionLike) {
-      final int digest = _computeDigest(exception: exception, message: messageStr, stackStr: stackStr);
+      final int digest = _computeDigest(
+        exception: exception,
+        message: messageStr,
+        stackStr: stackStr,
+      );
       if (_isDuplicateDigest(digest)) {
         return Future.value();
       }
@@ -194,13 +206,13 @@ class AppAmbitSdk extends NavigatorObserver {
 
     if (userProvidedMessage) {
       return AppAmbitSdkFlutterPlatform.instance.logErrorMessage(payload);
-    } else if ((exception != null) || (stackStr != null && stackStr.isNotEmpty)) {
+    } else if ((exception != null) ||
+        (stackStr != null && stackStr.isNotEmpty)) {
       return AppAmbitSdkFlutterPlatform.instance.logError(payload);
     } else {
       return Future.value();
     }
   }
-
 
   static String? _stringify(Object? value) {
     if (value == null) return null;
@@ -211,9 +223,12 @@ class AppAmbitSdk extends NavigatorObserver {
     }
   }
 
-
-  static String? _normalizeStackTrace(Object? exception, StackTrace? stackTrace) {
-    final StackTrace? st = stackTrace ?? (exception is Error ? exception.stackTrace : null);
+  static String? _normalizeStackTrace(
+    Object? exception,
+    StackTrace? stackTrace,
+  ) {
+    final StackTrace? st =
+        stackTrace ?? (exception is Error ? exception.stackTrace : null);
     return st?.toString();
   }
 
@@ -226,8 +241,12 @@ class AppAmbitSdk extends NavigatorObserver {
       final Object error = details.exception;
       final StackTrace stack = details.stack ?? StackTrace.current;
       AppAmbitSdk.logError(exception: error, stackTrace: stack);
-      try { originalFlutterOnError?.call(details); } catch (_) {}
-      try { FlutterError.presentError(details); } catch (_) {}
+      try {
+        originalFlutterOnError?.call(details);
+      } catch (_) {}
+      try {
+        FlutterError.presentError(details);
+      } catch (_) {}
     };
 
     ui.PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
@@ -238,13 +257,19 @@ class AppAmbitSdk extends NavigatorObserver {
     _isolateErrorPort = RawReceivePort((dynamic pair) {
       final List<dynamic> errorAndStack = pair as List<dynamic>;
       final Object error = errorAndStack.first;
-      final StackTrace stack = StackTrace.fromString(errorAndStack.last as String);
+      final StackTrace stack = StackTrace.fromString(
+        errorAndStack.last as String,
+      );
       AppAmbitSdk.logError(exception: error, stackTrace: stack);
     });
     Isolate.current.addErrorListener(_isolateErrorPort!.sendPort);
   }
 
-  static int _computeDigest({Object? exception, String? message, String? stackStr}) {
+  static int _computeDigest({
+    Object? exception,
+    String? message,
+    String? stackStr,
+  }) {
     final String a = exception?.runtimeType.toString() ?? '';
     final String b = (exception?.toString() ?? message ?? '').trim();
     final String c = (stackStr ?? '').split('\n').take(20).join('|');
@@ -306,20 +331,31 @@ _CallSite _inferCallSite(StackTrace stack) {
   for (final raw in lines) {
     final line = raw.trim();
     if (line.isEmpty) continue;
-    final m = RegExp(r'^\#\d+\s+([^\s]+)\s+\((.+):(\d+)(?::\d+)?\)$').firstMatch(line);
+    final m = RegExp(
+      r'^\#\d+\s+([^\s]+)\s+\((.+):(\d+)(?::\d+)?\)$',
+    ).firstMatch(line);
     if (m == null) continue;
     final symbol = m.group(1) ?? '';
     final loc = m.group(2) ?? '';
     final ln = int.tryParse(m.group(3) ?? '');
     bool skip = false;
     for (final p in skipPrefixes) {
-      if (loc.startsWith(p)) { skip = true; break; }
+      if (loc.startsWith(p)) {
+        skip = true;
+        break;
+      }
     }
     if (skip) continue;
-    if (symbol.startsWith('AppAmbitSdk.') || symbol.contains('.logError')) continue;
+    if (symbol.startsWith('AppAmbitSdk.') || symbol.contains('.logError'))
+      continue;
     final filePath = _normalizePath(loc);
-    final inferredClass = _symbolToClass(symbol) ?? _fallbackClassFromPath(filePath);
-    return _CallSite(classFqn: inferredClass, filePath: filePath, lineNumber: ln);
+    final inferredClass =
+        _symbolToClass(symbol) ?? _fallbackClassFromPath(filePath);
+    return _CallSite(
+      classFqn: inferredClass,
+      filePath: filePath,
+      lineNumber: ln,
+    );
   }
 
   return const _CallSite();
@@ -327,7 +363,11 @@ _CallSite _inferCallSite(StackTrace stack) {
 
 String _normalizePath(String loc) {
   if (loc.startsWith('file:')) {
-    try { return Uri.parse(loc).toFilePath(); } catch (_) { return loc; }
+    try {
+      return Uri.parse(loc).toFilePath();
+    } catch (_) {
+      return loc;
+    }
   }
   return loc;
 }

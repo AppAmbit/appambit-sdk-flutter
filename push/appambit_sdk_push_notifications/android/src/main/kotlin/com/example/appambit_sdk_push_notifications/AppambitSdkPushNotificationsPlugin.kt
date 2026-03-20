@@ -79,6 +79,14 @@ class AppambitSdkPushNotificationsPlugin :
                 }
                 result.success(null)
             }
+            "hasNotificationPermission" -> {
+                val hasPermission = if (Build.VERSION.SDK_INT >= 33) {
+                    context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+                } else {
+                    true
+                }
+                result.success(hasPermission)
+            }
             else -> result.notImplemented()
         }
     }

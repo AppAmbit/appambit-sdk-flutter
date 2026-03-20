@@ -2,6 +2,7 @@ import Flutter
 import UIKit
 import AppAmbit
 import AppAmbitPushNotifications
+import UserNotifications
 
 public class AppambitSdkPushNotificationsPlugin: NSObject, FlutterPlugin {
     
@@ -70,8 +71,11 @@ public class AppambitSdkPushNotificationsPlugin: NSObject, FlutterPlugin {
             result(nil)
 
         case "hasNotificationPermission":
-            let hasPermission = PushNotifications.hasNotificationPermission()
-            result(hasPermission)
+            UNUserNotificationCenter.current().getNotificationSettings { settings in
+                DispatchQueue.main.async {
+                    result(settings.authorizationStatus == .authorized)
+                }
+            }
             
         default:
             result(FlutterMethodNotImplemented)
