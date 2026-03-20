@@ -14,7 +14,9 @@ buildscript {
     }
 }
 
-allprojects {
+
+
+rootProject.allprojects {
     repositories {
         google()
         mavenCentral()
@@ -66,5 +68,5 @@ android {
 }
 
 dependencies {
-    implementation("com.appambit:appambit:0.2.2")
+    implementation("com.appambit:appambit:0.4.0")
 }

@@ -20,6 +20,7 @@ class AppAmbitSdkFlutterPlugin :
     private lateinit var channel: MethodChannel
     private lateinit var crashes: CrashesFlutter
     private lateinit var analytics: AnalyticsFlutter
+    private lateinit var remoteConfig: RemoteConfigFlutter
     private lateinit var context: Context
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
@@ -33,6 +34,9 @@ class AppAmbitSdkFlutterPlugin :
 
         analytics = AnalyticsFlutter()
         analytics.attach(flutterPluginBinding, context)
+
+        remoteConfig = RemoteConfigFlutter()
+        remoteConfig.attach(flutterPluginBinding, context)
 
     }
 
@@ -69,5 +73,6 @@ class AppAmbitSdkFlutterPlugin :
         channel.setMethodCallHandler(null)
         crashes.detach()
         analytics.detach()
+        remoteConfig.detach()
     }
 }

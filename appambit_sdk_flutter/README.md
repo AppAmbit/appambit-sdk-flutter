@@ -62,7 +62,7 @@ Add the AppAmbit Flutter SDK to your app’s `pubspec.yml`.
 dependencies:
   flutter:
     sdk: flutter
-  appambit_sdk_flutter: ^0.1.0
+  appambit_sdk_flutter: ^0.2.0
 ```
 
 and then
@@ -110,7 +110,7 @@ Add these permissions to your `AndroidManifest.xml`:
 
 * **Session activity** – automatically tracks user session starts, stops, and durations
 * **Track events** – send structured events with custom properties
-
+* **Remote Config** – dynamic configuration values fetched and applied at runtime
 
 ### Dart
 
@@ -134,6 +134,29 @@ try {
 
 * **Crash Reporting**: uncaught crashes are automatically captured and uploaded on next launch
 
+
+```dart
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  AppAmbitSdk.enableConfig();
+  AppAmbitSdk.start(appKey: '<YOUR-APPKEY>');
+
+  runApp(const MyApp());
+}
+```
+
+```dart
+// String
+String variable = await AppAmbitSdk.getString("<key_name>");
+// Long
+int variable = await AppAmbitSdk.getLong("<key_name>");
+// Double
+double variable = await AppAmbitSdk.getDouble("<key_name>");
+// Boolean
+bool variable = await AppAmbitSdk.getBoolean("<key_name>");
+```
+
+* **Remote Config**: fetch and apply remote configuration values asynchronously using type-safe methods (`getString`, `getBoolean`, `getLong`, `getDouble`).
 ---
 
 ## Release Distribution

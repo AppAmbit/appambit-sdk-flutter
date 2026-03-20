@@ -1,6 +1,6 @@
-
 import 'package:appambit_sdk_flutter/appambit_sdk_flutter.dart';
 import 'package:appambit_sdk_flutter_example/utils/uuid_app.dart';
+import 'package:appambit_sdk_push_notifications/appambit_sdk_push_notifications.dart';
 import 'package:flutter/material.dart';
 
 class CrashesView extends StatefulWidget {
@@ -10,9 +10,36 @@ class CrashesView extends StatefulWidget {
 }
 
 class _CrashesViewState extends State<CrashesView> {
-  final TextEditingController _userIdCtrl = TextEditingController(text: UuidApp.generateUuidV4());
-  final TextEditingController _emailCtrl = TextEditingController(text: "test@gmail.com");
-  final TextEditingController _customLogCtrl = TextEditingController( text: 'Test Log Message');
+  final TextEditingController _userIdCtrl = TextEditingController(
+    text: UuidApp.generateUuidV4(),
+  );
+  final TextEditingController _emailCtrl = TextEditingController(
+    text: "test@gmail.com",
+  );
+  final TextEditingController _customLogCtrl = TextEditingController(
+    text: 'Test Log Message',
+  );
+
+  bool granted = false;
+  bool _hasAttemptedRequest = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initNotificationState();
+  }
+
+  Future<void> _initNotificationState() async {
+    final bool isEnabled = await PushNotificationsSdk.isNotificationsEnabled();
+    final bool hasPermission =
+        await PushNotificationsSdk.hasNotificationPermission();
+    setState(() {
+      granted = isEnabled && hasPermission;
+      if (hasPermission) {
+        _hasAttemptedRequest = true;
+      }
+    });
+  }
 
   Future<void> _showInfo(String message) async {
     if (!mounted) return;
@@ -22,10 +49,55 @@ class _CrashesViewState extends State<CrashesView> {
         title: const Text('Info'),
         content: Text(message),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
         ],
       ),
     );
+  }
+
+  Future<void> _toggleNotifications() async {
+    try {
+      if (granted) {
+        await PushNotificationsSdk.setNotificationsEnabled(false);
+        setState(() {
+          granted = false;
+          _hasAttemptedRequest = true;
+        });
+        await _showInfo("Push notifications disabled");
+      } else {
+        var isGranted = await PushNotificationsSdk.requestNotificationPermissionWithResult();
+        
+        if (isGranted) {
+           await PushNotificationsSdk.setNotificationsEnabled(true);
+        }
+
+        setState(() {
+          granted = isGranted;
+          _hasAttemptedRequest = true;
+        });
+
+        if (isGranted) {
+           await _showInfo("Notification permission granted and enabled.");
+        } else {
+           await _showInfo("Notification permission denied or not granted.");
+        }
+      }
+    } catch (e) {
+      await _showInfo('Failed to update notification settings: $e');
+    }
+  }
+
+  String get _notificationButtonText {
+    if (granted) {
+      return "Disable Push Notifications";
+    }
+    if (_hasAttemptedRequest) {
+      return "Enable Push Notifications";
+    }
+    return "Allow notifications";
   }
 
   Future<void> _didCrashInLastSession() async {
@@ -39,7 +111,7 @@ class _CrashesViewState extends State<CrashesView> {
   Future<void> _changeUserId() async {
     final id = _userIdCtrl.text.trim();
     if (id.isEmpty) return;
-    await AppAmbitSdk.setUserId(id);    
+    await AppAmbitSdk.setUserId(id);
     await _showInfo("User ID changed");
   }
 
@@ -57,7 +129,10 @@ class _CrashesViewState extends State<CrashesView> {
   }
 
   Future<void> _onTestLog() async {
-    await AppAmbitSdk.logError(message: 'Test Log Error', properties: <String, String>{'user_id': '1'});
+    await AppAmbitSdk.logError(
+      message: 'Test Log Error',
+      properties: <String, String>{'user_id': '1'},
+    );
     await _showInfo("LogError sent");
   }
 
@@ -68,7 +143,7 @@ class _CrashesViewState extends State<CrashesView> {
       await AppAmbitSdk.logError(
         exception: e,
         stackTrace: st,
-        properties: <String, String>{'user_id': '1'}
+        properties: <String, String>{'user_id': '1'},
       );
       await _showInfo("LogError sent");
     }
@@ -78,7 +153,7 @@ class _CrashesViewState extends State<CrashesView> {
     await AppAmbitSdk.logError(
       message: 'Test log with classFQN',
       properties: <String, String>{'from': 'flutter'},
-      classFqn: runtimeType.toString()
+      classFqn: runtimeType.toString(),
     );
     await _showInfo("LogError sent");
   }
@@ -124,7 +199,10 @@ class _CrashesViewState extends State<CrashesView> {
         keyboardType: keyboardType,
         decoration: InputDecoration(
           hintText: hint,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 14,
+          ),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
@@ -157,7 +235,16 @@ class _CrashesViewState extends State<CrashesView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _blueButton('Did the app crash during your last session?', _didCrashInLastSession),
+            _blueButton(
+              _notificationButtonText,
+              _toggleNotifications,
+            ),
+            const SizedBox(height: 8),
+
+            _blueButton(
+              'Did the app crash during your last session?',
+              _didCrashInLastSession,
+            ),
             const SizedBox(height: 8),
 
             _outlinedField(hint: 'User Id', controller: _userIdCtrl),
@@ -180,7 +267,7 @@ class _CrashesViewState extends State<CrashesView> {
             _blueButton('Send Default LogError', _onTestLog),
             _blueButton('Send Exception LogError', _sendTestError),
             _blueButton('Send ClassInfo LogError', _onSendTestLogWithClassFQN),
-            
+
             _blueButton('Throw new Crash', _throwNewCrash),
             _blueButton('Generate Test Crash', () => _generateTestCrash()),
             const SizedBox(height: 12),

@@ -40,4 +40,29 @@ post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
   end
+
+  # Workaround: AppAmbitPushNotifications 0.3.0 incorrectly uses `import AppAmbitSdk` 
+  # while the AppAmbitSdk pod defines its module name as `AppAmbit`.
+  installer.pod_targets.each do |pod|
+    if pod.name == 'AppAmbitPushNotifications'
+      pod_dir = pod.support_files_dir.parent.parent + "AppAmbitPushNotifications"
+      
+      # Correct the imports and append the missing `updateConsumer` bridge.
+      swift_files = Dir.glob(File.join(pod_dir, '**', '*.swift'))
+      swift_files.each do |file_path|
+        File.chmod(0644, file_path)
+        content = File.read(file_path)
+        
+        # 1. Correct module import
+        content.gsub!(/import AppAmbitSdk/, 'import AppAmbit')
+        
+        # 2. If this is PushNotifications.swift, append the bridge extension
+        if File.basename(file_path) == 'PushNotifications.swift' && !content.include?('extension AppAmbit')
+          content << "\n\n// Bridge extension to resolve SDK incompatibility\nextension AppAmbit {\n    @objc(updateConsumer:pushEnabled:completion:)\n    public static func updateConsumer(deviceToken: String?, pushEnabled: Bool, completion: (@Sendable (Bool) -> Void)? = nil) {\n        ConsumerService.shared.updateConsumer(deviceToken: deviceToken, pushEnabled: pushEnabled, completion: completion)\n    }\n}\n"
+        end
+        
+        File.write(file_path, content)
+      end
+    end
+  end
 end
