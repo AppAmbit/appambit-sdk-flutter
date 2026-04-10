@@ -2,11 +2,11 @@ import 'dart:async';
 import 'dart:isolate';
 import 'dart:ui' as ui;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-import 'appambit_sdk_flutter_method_channel.dart' as _impl;
+import 'appambit_sdk_flutter_method_channel.dart' as impl;
 import 'appambit_sdk_flutter_platform_interface.dart';
+export 'appambit_cms.dart';
 
 class AppAmbitSdk extends NavigatorObserver {
   static bool _hooksInstalled = false;
@@ -17,7 +17,7 @@ class AppAmbitSdk extends NavigatorObserver {
   static const int _dedupeTtlMs = 3000;
 
   static void _ensureRegistered() {
-    _impl.registerMethodChannelImplementation();
+    impl.registerMethodChannelImplementation();
   }
 
   @override
@@ -346,8 +346,9 @@ _CallSite _inferCallSite(StackTrace stack) {
       }
     }
     if (skip) continue;
-    if (symbol.startsWith('AppAmbitSdk.') || symbol.contains('.logError'))
+    if (symbol.startsWith('AppAmbitSdk.') || symbol.contains('.logError')) {
       continue;
+    }
     final filePath = _normalizePath(loc);
     final inferredClass =
         _symbolToClass(symbol) ?? _fallbackClassFromPath(filePath);

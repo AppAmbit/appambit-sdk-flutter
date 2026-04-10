@@ -137,6 +137,42 @@ class MethodChannelAppAmbitSdkFlutter extends AppAmbitSdkFlutterPlatform {
     });
     return res ?? 0.0;
   }
+
+  // Cms
+  final MethodChannel _cms = const MethodChannel('com.appambit/cms');
+
+  @override
+  Future<void> clearCmsCache(String contentType) async {
+    await _cms.invokeMethod('clearCache', {'contentType': contentType});
+  }
+
+  @override
+  Future<void> clearAllCmsCache() async {
+    await _cms.invokeMethod('clearAllCache');
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getCmsList({
+    required String contentType,
+    required List<Map<String, dynamic>> filters,
+    int? page,
+    int? perPage,
+    String? orderBy,
+    String? orderDir,
+  }) async {
+    final res = await _cms.invokeMethod<List<dynamic>>('getList', {
+      'contentType': contentType,
+      'filters': filters,
+      'page': page,
+      'perPage': perPage,
+      'orderBy': orderBy,
+      'orderDir': orderDir,
+    });
+    
+    if (res == null) return [];
+    
+    return res.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
 }
 
 void registerMethodChannelImplementation() {

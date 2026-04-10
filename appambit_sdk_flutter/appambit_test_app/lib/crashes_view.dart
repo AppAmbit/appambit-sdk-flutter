@@ -209,23 +209,6 @@ class _CrashesViewState extends State<CrashesView> {
     );
   }
 
-  Widget _disabledBlock(String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 96, 120, 141),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Center(
-          child: Text(text, style: const TextStyle(color: Color(0xFFF2F2F7))),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scrollbar(

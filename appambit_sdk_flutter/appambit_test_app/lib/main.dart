@@ -1,6 +1,7 @@
 import 'package:appambit_sdk_flutter_example/analytics_view.dart';
 import 'package:appambit_sdk_flutter_example/crashes_view.dart';
 import 'package:appambit_sdk_flutter_example/remote_config_view.dart';
+import 'package:appambit_sdk_flutter_example/cms_view.dart';
 import 'package:appambit_sdk_push_notifications/appambit_sdk_push_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:appambit_sdk_flutter/appambit_sdk_flutter.dart';
@@ -45,6 +46,7 @@ class _MainBottomNavPageState extends State<MainBottomNavPage> {
     const CrashesView(),
     const AnalyticsView(),
     RemoteConfigView(isActive: _index == 2),
+    const CmsView(),
   ];
 
   @override
@@ -53,6 +55,7 @@ class _MainBottomNavPageState extends State<MainBottomNavPage> {
       appBar: AppBar(title: Text(_getTitle())),
       body: IndexedStack(index: _index, children: _pages),
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
         currentIndex: _index,
         onTap: (i) => setState(() => _index = i),
         items: const [
@@ -68,6 +71,7 @@ class _MainBottomNavPageState extends State<MainBottomNavPage> {
             icon: Icon(Icons.settings_remote),
             label: 'Remote Config',
           ),
+          BottomNavigationBarItem(icon: Icon(Icons.article), label: 'CMS'),
         ],
       ),
     );
@@ -81,6 +85,8 @@ class _MainBottomNavPageState extends State<MainBottomNavPage> {
         return 'Analytics';
       case 2:
         return 'Remote Config';
+      case 3:
+        return 'CMS Native';
       default:
         return 'AppAmbit SDK';
     }

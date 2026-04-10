@@ -16,10 +16,16 @@ buildscript {
 
 
 
+// Capture plugin dir before rootProject closure so it's available to all subprojects
+def pluginDir = project.projectDir
+
 rootProject.allprojects {
     repositories {
         google()
         mavenCentral()
+        maven {
+            url = uri("${pluginDir}/local-maven")
+        }
     }
 }
 
@@ -67,6 +73,16 @@ android {
     }
 }
 
+repositories {
+    maven {
+        url = uri("${project.projectDir}/local-maven")
+    }
+}
+
 dependencies {
-    implementation("com.appambit:appambit:0.4.0")
+    // AGP 8+ fix: direct local .aar is not allowed in plugin AARs.
+    // The AAR is served via a local Maven repo at android/local-maven/
+    implementation("com.appambit:appambit-sdk:1.0.0@aar") { transitive = true }
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("com.google.android.material:material:1.11.0")
 }
