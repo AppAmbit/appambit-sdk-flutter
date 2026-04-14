@@ -9,9 +9,10 @@ public class AppAmbitSdkFlutterPlugin: NSObject, FlutterPlugin {
   private static let analyticsChannelName = "com.appambit/analytics"
   private static let crashesChannelName   = "com.appambit/crashes"
   private static let remoteConfigChannelName = "com.appambit/remoteconfig"
+  private static let cmsChannelName          = "com.appambit/cms"
 
   
-  private enum Scope { case core, analytics, crashes, remoteConfig }
+  private enum Scope { case core, analytics, crashes, remoteConfig, cms }
   private let scope: Scope
 
   private init(scope: Scope) {
@@ -34,11 +35,15 @@ public class AppAmbitSdkFlutterPlugin: NSObject, FlutterPlugin {
     let crashesChannel = FlutterMethodChannel(name: crashesChannelName, binaryMessenger: registrar.messenger())
     let crashesInstance = AppAmbitSdkFlutterPlugin(scope: .crashes)
     registrar.addMethodCallDelegate(crashesInstance, channel: crashesChannel)
-    
     // Remote Config
     let remoteConfigChannel = FlutterMethodChannel(name: remoteConfigChannelName, binaryMessenger: registrar.messenger())
     let remoteConfigInstance = AppAmbitSdkFlutterPlugin(scope: .remoteConfig)
     registrar.addMethodCallDelegate(remoteConfigInstance, channel: remoteConfigChannel)
+
+    // Cms
+    let cmsChannel = FlutterMethodChannel(name: cmsChannelName, binaryMessenger: registrar.messenger())
+    let cmsInstance = AppAmbitSdkFlutterPlugin(scope: .cms)
+    registrar.addMethodCallDelegate(cmsInstance, channel: cmsChannel)
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -106,6 +111,15 @@ public class AppAmbitSdkFlutterPlugin: NSObject, FlutterPlugin {
         case "getBoolean":          RemoteConfigFlutter.getBoolean(args: call.arguments, result: result)
         case "getLong":             RemoteConfigFlutter.getLong(args: call.arguments, result: result)
         case "getDouble":           RemoteConfigFlutter.getDouble(args: call.arguments, result: result)
+        default:
+            result(FlutterMethodNotImplemented)
+        }
+        
+    case .cms:
+        switch call.method {
+        case "clearCache":          CmsFlutter.clearCache(args: call.arguments, result: result)
+        case "clearAllCache":       CmsFlutter.clearAllCache(result: result)
+        case "getList":             CmsFlutter.getList(args: call.arguments, result: result)
         default:
             result(FlutterMethodNotImplemented)
         }
