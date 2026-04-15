@@ -17,6 +17,9 @@ public class CmsFlutter {
         result(nil)
     }
 
+    private static var pendingRequests: [String: [() -> Void]] = [:]
+    private static let pendingLock = NSLock()
+
     public static func getList(args: Any?, result: @escaping FlutterResult) {
         guard let argsDict = args as? [String: Any],
               let contentType = argsDict["contentType"] as? String else {
@@ -24,6 +27,33 @@ public class CmsFlutter {
             return
         }
 
+        pendingLock.lock()
+        if pendingRequests[contentType] != nil {
+            pendingRequests[contentType]?.append {
+                self.doGetList(contentType: contentType, argsDict: argsDict) { items in
+                    DispatchQueue.main.async { result(items) }
+                }
+            }
+            pendingLock.unlock()
+            return
+        }
+        pendingRequests[contentType] = []
+        pendingLock.unlock()
+
+        doGetList(contentType: contentType, argsDict: argsDict) { items in
+            DispatchQueue.main.async { result(items) }
+            
+            pendingLock.lock()
+            let waiting = pendingRequests.removeValue(forKey: contentType) ?? []
+            pendingLock.unlock()
+            
+            for task in waiting {
+                task()
+            }
+        }
+    }
+
+    private static func doGetList(contentType: String, argsDict: [String: Any], completion: @escaping ([Any]) -> Void) {
         let query = Cms.contentTypelessObjC(contentType)
 
         if let page = argsDict["page"] as? Int {
@@ -74,11 +104,25 @@ public class CmsFlutter {
                     if let field = filter["field"] as? String,
                        let val = filter["value"] { _ = query.lessThanOrEqual(field, val) }
                 case "inList":
-                    if let field = filter["field"] as? String,
-                       let val = filter["value"] as? [String] { _ = query.inList(field, val) }
+                    if let field = filter["field"] as? String {
+                        let val: [String]
+                        if let typed = filter["value"] as? [String] {
+                            val = typed
+                        } else if let nsArr = filter["value"] as? NSArray {
+                            val = nsArr.compactMap { $0 as? String }
+                        } else { break }
+                        if !val.isEmpty { _ = query.inList(field, val) }
+                    }
                 case "notInList":
-                    if let field = filter["field"] as? String,
-                       let val = filter["value"] as? [String] { _ = query.notInList(field, val) }
+                    if let field = filter["field"] as? String {
+                        let val: [String]
+                        if let typed = filter["value"] as? [String] {
+                            val = typed
+                        } else if let nsArr = filter["value"] as? NSArray {
+                            val = nsArr.compactMap { $0 as? String }
+                        } else { break }
+                        if !val.isEmpty { _ = query.notInList(field, val) }
+                    }
                 default:
                     break
                 }
@@ -86,9 +130,7 @@ public class CmsFlutter {
         }
 
         query.getList { items in
-            DispatchQueue.main.async {
-                result(items)
-            }
+            completion(items)
         }
     }
 }

@@ -190,7 +190,6 @@ class _CmsViewState extends State<CmsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('CMS Query Builder'), centerTitle: true),
       body: Column(
         children: [
           // Controls
@@ -206,6 +205,7 @@ class _CmsViewState extends State<CmsView> {
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         isExpanded: true,
+                        // ignore: deprecated_member_use
                         value: _selectedFilter,
                         decoration: const InputDecoration(
                           contentPadding: EdgeInsets.symmetric(horizontal: 12),
@@ -284,11 +284,31 @@ class _CmsViewState extends State<CmsView> {
                       setState(() {
                         _selectedFilter = "All List";
                       });
-                      final q = AppAmbitCms.content<TechItem>(
-                        _collection,
-                        fromJson: TechItem.fromJson,
-                      );
-                      _loadData(q);
+                      try {
+                        final q = AppAmbitCms.content<TechItem>(
+                          _collection,
+                          fromJson: TechItem.fromJson,
+                        );
+                        _loadData(q);
+                        final q1 = AppAmbitCms.content<TechItem>(
+                          _collection,
+                          fromJson: TechItem.fromJson,
+                        );
+
+                        _loadData(q1);
+                      } catch (e) {
+                        debugPrint("Error 1 call");
+                      }
+
+                      try {
+                        final q2 = AppAmbitCms.content<TechItem>(
+                          'sistema_de_gestion_de_propiedades_de_una_marinaclub_nautico',
+                          fromJson: TechItem.fromJson,
+                        );
+                        _loadData(q2);
+                      } catch (e) {
+                        debugPrint("Error segunda calla");
+                      }
                     },
                     child: const Text('Get All List'),
                   ),
@@ -376,33 +396,49 @@ class _ProductCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Title & Category Badge
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          item.productName ?? '—',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      if (item.category.isNotEmpty)
-                        Text(
-                          '🏷️ ${item.category.first}',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
-                          ),
-                        ),
-                    ],
+                  // Title
+                  Text(
+                    item.productName ?? '—',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
+                  if (item.category.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 4,
+                      runSpacing: 4,
+                      children: item.category
+                          .map(
+                            (cat) => Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withAlpha(30),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(
+                                  color: Colors.blue.withAlpha(80),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Text(
+                                cat,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ],
                   const SizedBox(height: 6),
 
                   // Description
@@ -509,7 +545,7 @@ class _ProductCard extends StatelessWidget {
     if (isoString == null || isoString.isEmpty) return '-';
     try {
       final date = DateTime.parse(isoString);
-      return "\${date.day.toString().padLeft(2, '0')}/\${date.month.toString().padLeft(2, '0')}/\${date.year}";
+      return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
     } catch (e) {
       return isoString;
     }

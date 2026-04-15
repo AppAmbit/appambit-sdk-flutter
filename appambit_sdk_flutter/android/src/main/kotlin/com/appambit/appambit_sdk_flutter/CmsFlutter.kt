@@ -58,26 +58,32 @@ class CmsFlutter {
                         if (filters != null) {
                             for (filter in filters) {
                                 val type = filter["type"] as? String ?: continue
-                                val field = filter["field"] as? String ?: continue
-                                val valueStr = filter["value"]?.toString()
-                                val valueNum = filter["value"] as? Number
-                                val valueList = filter["value"] as? List<String>
 
                                 when (type) {
                                     "search" -> {
                                         val q = filter["query"] as? String ?: continue
                                         query.search(q)
                                     }
-                                    "equals" -> if (valueStr != null) query.equals(field, valueStr)
-                                    "notEquals" -> if (valueStr != null) query.notEquals(field, valueStr)
-                                    "contains" -> if (valueStr != null) query.contains(field, valueStr)
-                                    "startsWith" -> if (valueStr != null) query.startsWith(field, valueStr)
-                                    "greaterThan" -> if (valueNum != null) query.greaterThan(field, valueNum)
-                                    "greaterThanOrEqual" -> if (valueNum != null) query.greaterThanOrEqual(field, valueNum)
-                                    "lessThan" -> if (valueNum != null) query.lessThan(field, valueNum)
-                                    "lessThanOrEqual" -> if (valueNum != null) query.lessThanOrEqual(field, valueNum)
-                                    "inList" -> if (valueList != null) query.inList(field, valueList)
-                                    "notInList" -> if (valueList != null) query.notInList(field, valueList)
+                                    else -> {
+                                        val field = filter["field"] as? String ?: continue
+                                        val valueStr = filter["value"]?.toString()
+                                        val valueNum = filter["value"] as? Number
+                                        @Suppress("UNCHECKED_CAST")
+                                        val valueList = filter["value"] as? List<String>
+
+                                        when (type) {
+                                            "equals" -> if (valueStr != null) query.equals(field, valueStr)
+                                            "notEquals" -> if (valueStr != null) query.notEquals(field, valueStr)
+                                            "contains" -> if (valueStr != null) query.contains(field, valueStr)
+                                            "startsWith" -> if (valueStr != null) query.startsWith(field, valueStr)
+                                            "greaterThan" -> if (valueNum != null) query.greaterThan(field, valueNum)
+                                            "greaterThanOrEqual" -> if (valueNum != null) query.greaterThanOrEqual(field, valueNum)
+                                            "lessThan" -> if (valueNum != null) query.lessThan(field, valueNum)
+                                            "lessThanOrEqual" -> if (valueNum != null) query.lessThanOrEqual(field, valueNum)
+                                            "inList" -> if (valueList != null) query.inList(field, valueList)
+                                            "notInList" -> if (valueList != null) query.notInList(field, valueList)
+                                        }
+                                    }
                                 }
                             }
                         }

@@ -2,67 +2,69 @@ import 'package:appambit_sdk_flutter/appambit_sdk_flutter_platform_interface.dar
 
 class AppAmbitCmsQuery<T> {
   final String _contentType;
-  final T Function(Map<String, dynamic>)? _fromJson;
-  final List<Map<String, dynamic>> _filters = [];
+  final T Function(Map<String, dynamic>) _fromJson;
+  final List<Map<String, dynamic>> _nativeFilters = [];
+  final List<Map<String, dynamic>> _dartFilters = [];
   int? _page;
   int? _perPage;
   String? _orderBy;
   String? _orderDir;
 
-  AppAmbitCmsQuery(this._contentType, {T Function(Map<String, dynamic>)? fromJson}) : _fromJson = fromJson;
+  AppAmbitCmsQuery(this._contentType, {required T Function(Map<String, dynamic>) fromJson})
+      : _fromJson = fromJson;
 
   AppAmbitCmsQuery<T> search(String query) {
-    _filters.add({'type': 'search', 'query': query});
+    _nativeFilters.add({'type': 'search', 'query': query});
     return this;
   }
 
   AppAmbitCmsQuery<T> equals(String field, String value) {
-    _filters.add({'type': 'equals', 'field': field, 'value': value});
+    _nativeFilters.add({'type': 'equals', 'field': field, 'value': value});
     return this;
   }
 
   AppAmbitCmsQuery<T> notEquals(String field, String value) {
-    _filters.add({'type': 'notEquals', 'field': field, 'value': value});
+    _nativeFilters.add({'type': 'notEquals', 'field': field, 'value': value});
     return this;
   }
 
   AppAmbitCmsQuery<T> contains(String field, String value) {
-    _filters.add({'type': 'contains', 'field': field, 'value': value});
+    _nativeFilters.add({'type': 'contains', 'field': field, 'value': value});
     return this;
   }
 
   AppAmbitCmsQuery<T> startsWith(String field, String value) {
-    _filters.add({'type': 'startsWith', 'field': field, 'value': value});
+    _nativeFilters.add({'type': 'startsWith', 'field': field, 'value': value});
     return this;
   }
 
   AppAmbitCmsQuery<T> greaterThan(String field, num value) {
-    _filters.add({'type': 'greaterThan', 'field': field, 'value': value});
+    _nativeFilters.add({'type': 'greaterThan', 'field': field, 'value': value});
     return this;
   }
 
   AppAmbitCmsQuery<T> greaterThanOrEqual(String field, num value) {
-    _filters.add({'type': 'greaterThanOrEqual', 'field': field, 'value': value});
+    _nativeFilters.add({'type': 'greaterThanOrEqual', 'field': field, 'value': value});
     return this;
   }
 
   AppAmbitCmsQuery<T> lessThan(String field, num value) {
-    _filters.add({'type': 'lessThan', 'field': field, 'value': value});
+    _nativeFilters.add({'type': 'lessThan', 'field': field, 'value': value});
     return this;
   }
 
   AppAmbitCmsQuery<T> lessThanOrEqual(String field, num value) {
-    _filters.add({'type': 'lessThanOrEqual', 'field': field, 'value': value});
+    _nativeFilters.add({'type': 'lessThanOrEqual', 'field': field, 'value': value});
     return this;
   }
 
   AppAmbitCmsQuery<T> inList(String field, List<String> values) {
-    _filters.add({'type': 'inList', 'field': field, 'value': values});
+    _dartFilters.add({'type': 'inList', 'field': field, 'value': values});
     return this;
   }
 
   AppAmbitCmsQuery<T> notInList(String field, List<String> values) {
-    _filters.add({'type': 'notInList', 'field': field, 'value': values});
+    _dartFilters.add({'type': 'notInList', 'field': field, 'value': values});
     return this;
   }
 
@@ -91,35 +93,50 @@ class AppAmbitCmsQuery<T> {
   Future<List<T>> getList() async {
     final rawList = await AppAmbitSdkFlutterPlatform.instance.getCmsList(
       contentType: _contentType,
-      filters: _filters,
-      page: _page,
-      perPage: _perPage,
+      filters: _nativeFilters,
+      page: _dartFilters.isEmpty ? _page : null,
+      perPage: _dartFilters.isEmpty ? _perPage : null,
       orderBy: _orderBy,
       orderDir: _orderDir,
     );
 
-    final parser = _fromJson;
-    if (parser != null) {
-      return rawList.map((e) => parser(e)).toList();
+    var filtered = rawList;
+
+    for (final f in _dartFilters) {
+      final field = f['field'] as String;
+      final values = (f['value'] as List).map((e) => e.toString()).toList();
+      final negate = f['type'] == 'notInList';
+
+      filtered = filtered.where((item) {
+        final fieldVal = item[field];
+        final bool matches;
+
+        if (fieldVal is List) {
+          matches = fieldVal.any((v) => values.contains(v.toString()));
+        } else {
+          matches = values.contains(fieldVal?.toString());
+        }
+
+        return negate ? !matches : matches;
+      }).toList();
     }
-    
-    // Fallback to casting if T is Map<String, dynamic> or dynamic, and fromJson is not provided
-    return rawList.cast<T>();
+
+    return filtered.map(_fromJson).toList();
   }
 }
 
 class AppAmbitCms {
-  /// Start building a query for a particular content type.
-  static AppAmbitCmsQuery<T> content<T>(String contentType, {T Function(Map<String, dynamic>)? fromJson}) {
+  static AppAmbitCmsQuery<T> content<T>(
+    String contentType, {
+    required T Function(Map<String, dynamic>) fromJson,
+  }) {
     return AppAmbitCmsQuery<T>(contentType, fromJson: fromJson);
   }
 
-  /// Remove the local cache for a given content type.
   static Future<void> clearCache(String contentType) {
     return AppAmbitSdkFlutterPlatform.instance.clearCmsCache(contentType);
   }
 
-  /// Remove the local cache across all content types.
   static Future<void> clearAllCache() {
     return AppAmbitSdkFlutterPlatform.instance.clearAllCmsCache();
   }
