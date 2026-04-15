@@ -280,35 +280,15 @@ class _CmsViewState extends State<CmsView> {
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       setState(() {
                         _selectedFilter = "All List";
                       });
-                      try {
-                        final q = AppAmbitCms.content<TechItem>(
-                          _collection,
-                          fromJson: TechItem.fromJson,
-                        );
-                        _loadData(q);
-                        final q1 = AppAmbitCms.content<TechItem>(
-                          _collection,
-                          fromJson: TechItem.fromJson,
-                        );
-
-                        _loadData(q1);
-                      } catch (e) {
-                        debugPrint("Error 1 call");
-                      }
-
-                      try {
-                        final q2 = AppAmbitCms.content<TechItem>(
-                          'sistema_de_gestion_de_propiedades_de_una_marinaclub_nautico',
-                          fromJson: TechItem.fromJson,
-                        );
-                        _loadData(q2);
-                      } catch (e) {
-                        debugPrint("Error segunda calla");
-                      }
+                      final q = AppAmbitCms.content<TechItem>(
+                        _collection,
+                        fromJson: TechItem.fromJson,
+                      );
+                      await _loadData(q);
                     },
                     child: const Text('Get All List'),
                   ),
