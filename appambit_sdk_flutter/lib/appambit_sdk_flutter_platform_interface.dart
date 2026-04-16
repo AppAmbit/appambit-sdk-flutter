@@ -92,4 +92,24 @@ abstract class AppAmbitSdkFlutterPlatform extends PlatformInterface {
   Future<double> getDouble(String key) {
     throw UnimplementedError('getDouble() not implemented');
   }
+
+  /// CMS
+  Future<void> clearCmsCache(String contentType) {
+    throw UnimplementedError('clearCmsCache() not implemented');
+  }
+
+  Future<void> clearAllCmsCache() {
+    throw UnimplementedError('clearAllCmsCache() not implemented');
+  }
+
+  Future<List<Map<String, dynamic>>> getCmsList({
+    required String contentType,
+    required List<Map<String, dynamic>> filters,
+    int? page,
+    int? perPage,
+    String? orderBy,
+    String? orderDir,
+  }) {
+    throw UnimplementedError('getCmsList() not implemented');
+  }
 }
