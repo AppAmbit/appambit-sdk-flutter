@@ -21,6 +21,7 @@ class AppAmbitSdkFlutterPlugin :
     private lateinit var crashes: CrashesFlutter
     private lateinit var analytics: AnalyticsFlutter
     private lateinit var remoteConfig: RemoteConfigFlutter
+    private lateinit var cms: CmsFlutter
     private lateinit var context: Context
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
@@ -38,6 +39,8 @@ class AppAmbitSdkFlutterPlugin :
         remoteConfig = RemoteConfigFlutter()
         remoteConfig.attach(flutterPluginBinding, context)
 
+        cms = CmsFlutter()
+        cms.attach(flutterPluginBinding, context)
     }
 
     override fun onMethodCall(
@@ -74,5 +77,6 @@ class AppAmbitSdkFlutterPlugin :
         crashes.detach()
         analytics.detach()
         remoteConfig.detach()
+        cms.detach()
     }
 }
