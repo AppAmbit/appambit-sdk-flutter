@@ -1,6 +1,6 @@
 import 'package:appambit_sdk_flutter/appambit_cms.dart';
 import 'package:flutter/material.dart';
-import 'package:appambit_sdk_flutter_example/models/tech_item.dart';
+import 'package:appambit_sdk_flutter_example/models/cms_example_model.dart';
 
 const String _collection = 'tech_inventory';
 
