@@ -32,38 +32,58 @@ This SDK is an extension of the core AppAmbit Flutter SDK, providing a simple an
 ## Requirements
 
 * **AppAmbit Core SDK**: This SDK is an extension and requires the core `appambit_sdk_flutter` to be installed and configured.
-* **Android**: A configured Firebase project and a `google-services.json` file in your application module. Android API level 21 (Lollipop) or newer.
+* **Android**: A configured Firebase project and a `google-services.json` file in your application module. Android API level 24 (Nougat) or newer (`minSdk = 24`).
 * **iOS**: an APNs-enabled app identifier, the `Push Notifications` capability on your Runner target, and a Notification Service Extension target (see [iOS Setup](#ios-setup)). iOS 12.0 or newer.
 
 ---
 
 ## Install
 
-To install the library from Pub.dev, run the following commands in your project directory:
+### 1. Add the packages
+
+This package is an extension of the core SDK, so install **both** from your
+project directory:
 
 ```bash
 flutter pub add appambit_sdk_flutter
-```
-```bash
 flutter pub add appambit_sdk_push_notifications
 ```
 
-Add the following dependencies to your app's `build.gradle` file. Your app is still responsible for providing the Firebase Bill of Materials (BOM) to ensure version compatibility.
+You do **not** need to add `firebase-messaging` yourself — the plugin already
+bundles it. The only Firebase wiring your app provides is the
+`google-services.json` file and the Google Services Gradle plugin (below).
+
+### 2. Android setup
+
+**a. Add `google-services.json`**
+
+Download the file from your Firebase project's console and place it in your
+app module:
+
+```
+android/app/google-services.json
+```
+
+**b. Apply the Google Services Gradle plugin**
+
+This plugin processes `google-services.json` at build time. Add it to your
+Gradle files (pick the syntax matching your project).
 
 **Kotlin DSL**
-**`android/app/build.gradle`**
-```groovy
+
+`android/app/build.gradle.kts`
+```kotlin
 plugins {
     // Google services (FCM)
     id("com.google.gms.google-services")
 }
 ```
-**`android/build.gradle`**
-```groovy
+`android/build.gradle.kts`
+```kotlin
 buildscript {
     repositories {
-         google()
-         mavenCentral()
+        google()
+        mavenCentral()
     }
     dependencies {
         // Google services (FCM)
@@ -73,19 +93,20 @@ buildscript {
 ```
 
 **Groovy**
-**`android/app/build.gradle`**
+
+`android/app/build.gradle`
 ```groovy
 plugins {
     // Google services (FCM)
     id "com.google.gms.google-services"
 }
 ```
-**`android/build.gradle`**
+`android/build.gradle`
 ```groovy
 buildscript {
     repositories {
-         google()
-         mavenCentral()
+        google()
+        mavenCentral()
     }
     dependencies {
         // Google services (FCM)
@@ -94,7 +115,26 @@ buildscript {
 }
 ```
 
-Also, ensure you have the Google Services plugin configured in your project.
+**c. Set the minimum SDK to 24**
+
+The plugin requires `minSdk = 24`. If your app is on a lower value, raise it
+in `android/app/build.gradle.kts`:
+
+```kotlin
+defaultConfig {
+    minSdk = 24
+}
+```
+
+The `POST_NOTIFICATIONS` runtime permission (Android 13+) is declared by the
+SDK and merged into your manifest automatically — you don't need to add it.
+Call [`requestNotificationPermission`](#permission-listener-optional) at
+runtime to prompt the user.
+
+### 3. iOS setup
+
+iOS needs the **Push Notifications** capability on your Runner target and a
+Notification Service Extension. See [iOS Setup](#ios-setup).
 
 ---
 
@@ -112,7 +152,7 @@ Also, ensure you have the Google Services plugin configured in your project.
     PushNotificationsSdk.start();
     ```
 
-3.  **Request Permissions**: In your main activity, request the required notification permission.
+3.  **Request Permissions**: Request the OS notification permission. This shows the system prompt on Android 13+ and on iOS.
 
     ```dart
     PushNotificationsSdk.requestNotificationPermission();
@@ -206,24 +246,18 @@ automatically and gives you a `didReceive` hook to mutate content.
 
 ### 1. Install the AppAmbit iOS pods
 
-While the iOS pods are being published, point the example app's `Podfile`
-at a local checkout of `appambit-sdk-ios`:
+For the main `Runner` target you don't need to add any pods by hand. The
+AppAmbit iOS pods (`AppAmbitSdk`, `AppAmbitPushNotifications`) are published
+to CocoaPods and declared as dependencies of the plugin, so they resolve
+automatically:
 
-```ruby
-target 'Runner' do
-  use_frameworks!
-
-  pod 'AppAmbitSdk',
-      :path => '../../../../appambit-sdk-ios/AppAmbitSdk'
-  pod 'AppAmbitPushNotifications',
-      :path => '../../../../appambit-sdk-ios/Push/AppAmbitPushNotifications'
-
-  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-end
+```bash
+flutter pub get
+cd ios && pod install
 ```
 
-Adjust the relative path to match your layout. Once the pods are published
-this block is removed.
+Make sure the **Push Notifications** capability is enabled on the `Runner`
+target in Xcode (`Signing & Capabilities → + Capability → Push Notifications`).
 
 ### 2. Notification Service Extension (NSE)
 
@@ -236,7 +270,18 @@ live in its own target — Flutter cannot do this for you.
 1. Open `ios/Runner.xcworkspace`.
 2. `File → New → Target… → Notification Service Extension`.
 3. Name it `NotificationService`. Activate the scheme if Xcode asks.
-4. Add `AppAmbitPushNotifications` to the new target's **Frameworks and Libraries** (same pod as above; reference it via the Podfile so it is linked to the extension as well).
+4. Link the NSE against the AppAmbit extension pod. The base class
+   `AppAmbitNotificationService` ships in a **separate pod**,
+   `AppAmbitPushNotificationsExtension`. Add a target block for it in your
+   `ios/Podfile`, then run `pod install` again:
+
+    ```ruby
+    target 'NotificationService' do
+      use_frameworks!
+      pod 'AppAmbitPushNotificationsExtension', '1.0.0'
+    end
+    ```
+
 5. Replace the contents of the generated `NotificationService.swift` with one of the templates below.
 
 The NSE has hard runtime limits: **~30 s of execution and ~24 MB of memory**.
@@ -251,7 +296,7 @@ parse the AppAmbit payload, download the `image` URL, and attach it to the
 banner. No callbacks, no mutation.
 
 ```swift
-import AppAmbitPushNotifications
+import AppAmbitPushNotificationsExtension
 
 /// Minimal NSE. Subclassing `AppAmbitNotificationService` is enough — the
 /// SDK handles payload parsing and image attachment automatically.
@@ -270,7 +315,7 @@ notification.
 
 ```swift
 import UserNotifications
-import AppAmbitPushNotifications
+import AppAmbitPushNotificationsExtension
 
 class NotificationService: AppAmbitNotificationService {
 
@@ -285,7 +330,7 @@ class NotificationService: AppAmbitNotificationService {
         let dataPayload = userInfo["data"] as? [AnyHashable: Any] ?? userInfo
 
         // Examples — keep only what you need.
-        bestAttemptContent.title += " ✨"
+        bestAttemptContent.title += " Custom"
 
         if let category = dataPayload["category_type"] as? String {
             bestAttemptContent.categoryIdentifier = category
@@ -332,7 +377,14 @@ The SDK uses the standard keys from the FCM `notification` object.
 
 **`data` object:**
 
-The `data` object is a free-form container for any custom key-value pairs you wish to send (e.g., `{"your_key": "your_value", "another_key": 123}`). Its sole purpose is to pass custom data to your application, which you can then access using the `NotificationCustomizer` to implement any advanced logic you require.
+The `data` object is a free-form container for any custom key-value pairs you wish to send (e.g., `{"your_key": "your_value", "another_key": 123}`). Its sole purpose is to pass custom data to your application. In Dart you read it from the `data` map on the `PushNotificationData` delivered to your [foreground/opened listeners](#receiving-notifications) (or the Android background handler):
+
+```dart
+PushNotificationsSdk.setOpenedListener((notification) {
+  final value = notification.data?['your_key'];
+  // ...your custom logic
+});
+```
 
 ### Advanced Customization
 
