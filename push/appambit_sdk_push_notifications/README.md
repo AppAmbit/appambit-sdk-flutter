@@ -13,6 +13,7 @@ This SDK is an extension of the core AppAmbit Flutter SDK, providing a simple an
 * [Install](#install)
 * [Quickstart](#quickstart)
 * [Usage](#usage)
+* [iOS Setup](#ios-setup)
 * [Customization](#customization)
 
 ---
@@ -31,8 +32,8 @@ This SDK is an extension of the core AppAmbit Flutter SDK, providing a simple an
 ## Requirements
 
 * **AppAmbit Core SDK**: This SDK is an extension and requires the core `appambit_sdk_flutter` to be installed and configured.
-* **Firebase Project**: A configured Firebase project and a `google-services.json` file in your application module.
-* Android API level 21 (Lollipop) or newer.
+* **Android**: A configured Firebase project and a `google-services.json` file in your application module. Android API level 21 (Lollipop) or newer.
+* **iOS**: an APNs-enabled app identifier, the `Push Notifications` capability on your Runner target, and a Notification Service Extension target (see [iOS Setup](#ios-setup)). iOS 12.0 or newer.
 
 ---
 
@@ -143,16 +144,168 @@ var isEnabled = await PushNotificationsSdk.isNotificationsEnabled();
 
 ### Permission Listener (Optional)
 
-To know if the user granted or denied the notification permission, you can provide an optional listener.
+To know if the user granted or denied the notification permission, pass a callback.
 
 ```dart
-var isGranted = await PushNotificationsSdk.requestNotificationPermissionWithResult();
-if (isGranted) {
-    print("Permission granted!");
-} else {
-    print("Permission denied.");
+PushNotificationsSdk.requestNotificationPermission(
+  callback: (granted) {
+    if (granted) {
+      print("Permission granted!");
+    } else {
+      print("Permission denied.");
+    }
+  },
+);
+```
+
+### Receiving Notifications
+
+Register cross-platform listeners to react to notifications. Both fire on
+**Android and iOS**.
+
+```dart
+PushNotificationsSdk.setForegroundListener((data) {
+  print('Foreground push: ${data.title}');
+});
+
+PushNotificationsSdk.setOpenedListener((data) {
+  print('User tapped: ${data.title}');
+});
+```
+
+### Background Handlers
+
+For work that must run when a push arrives with the app in background or
+killed, the two platforms require different mechanisms because iOS runs
+notification-time code in a Notification Service Extension (NSE) — a separate
+process that cannot host a Flutter engine.
+
+**Android** — register a top-level Dart function annotated with
+`@pragma('vm:entry-point')`. It runs in a dedicated background isolate
+(no UI, no shared state with the main isolate) and survives app kill:
+
+```dart
+@pragma('vm:entry-point')
+void myBackgroundHandler(PushNotificationData data) {
+  // analytics, local DB writes, etc.
+}
+
+await PushNotificationsSdk.Android.setBackgroundHandler(myBackgroundHandler);
+```
+
+The handler **must** be a top-level or static function. Closures and instance
+methods cannot be looked up by `PluginUtilities.getCallbackFromHandle`.
+
+**iOS** — subclass `AppAmbitNotificationService` in your NSE Swift target
+(see [iOS Setup](#ios-setup)). The base class downloads attached images
+automatically and gives you a `didReceive` hook to mutate content.
+
+---
+
+## iOS Setup
+
+### 1. Install the AppAmbit iOS pods
+
+While the iOS pods are being published, point the example app's `Podfile`
+at a local checkout of `appambit-sdk-ios`:
+
+```ruby
+target 'Runner' do
+  use_frameworks!
+
+  pod 'AppAmbitSdk',
+      :path => '../../../../appambit-sdk-ios/AppAmbitSdk'
+  pod 'AppAmbitPushNotifications',
+      :path => '../../../../appambit-sdk-ios/Push/AppAmbitPushNotifications'
+
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+end
+```
+
+Adjust the relative path to match your layout. Once the pods are published
+this block is removed.
+
+### 2. Notification Service Extension (NSE)
+
+To display images and to mutate notification content on iOS you must add a
+Notification Service Extension target to your app. Apple requires the NSE to
+live in its own target — Flutter cannot do this for you.
+
+**Add the target in Xcode:**
+
+1. Open `ios/Runner.xcworkspace`.
+2. `File → New → Target… → Notification Service Extension`.
+3. Name it `NotificationService`. Activate the scheme if Xcode asks.
+4. Add `AppAmbitPushNotifications` to the new target's **Frameworks and Libraries** (same pod as above; reference it via the Podfile so it is linked to the extension as well).
+5. Replace the contents of the generated `NotificationService.swift` with one of the templates below.
+
+The NSE has hard runtime limits: **~30 s of execution and ~24 MB of memory**.
+Keep code inside it short and synchronous where possible.
+
+---
+
+#### Template A — Minimal (no custom code)
+
+Use this template when you only need what the SDK already does for free:
+parse the AppAmbit payload, download the `image` URL, and attach it to the
+banner. No callbacks, no mutation.
+
+```swift
+import AppAmbitPushNotifications
+
+/// Minimal NSE. Subclassing `AppAmbitNotificationService` is enough — the
+/// SDK handles payload parsing and image attachment automatically.
+class NotificationService: AppAmbitNotificationService {}
+```
+
+---
+
+#### Template B — Mutating content in `didReceive`
+
+Use this template when you need to mutate the notification before it is shown
+(title, body, badge, category, thread identifier, attachments, etc.). Mutate
+in `didReceive`, build a fresh request, and forward to `super.didReceive` so
+the base class still downloads any attached image and delivers the
+notification.
+
+```swift
+import UserNotifications
+import AppAmbitPushNotifications
+
+class NotificationService: AppAmbitNotificationService {
+
+    override func didReceive(_ request: UNNotificationRequest,
+                             withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
+        guard let bestAttemptContent = request.content.mutableCopy() as? UNMutableNotificationContent else {
+            contentHandler(request.content)
+            return
+        }
+
+        let userInfo = bestAttemptContent.userInfo
+        let dataPayload = userInfo["data"] as? [AnyHashable: Any] ?? userInfo
+
+        // Examples — keep only what you need.
+        bestAttemptContent.title += " ✨"
+
+        if let category = dataPayload["category_type"] as? String {
+            bestAttemptContent.categoryIdentifier = category
+        }
+        if let threadId = dataPayload["chat_id"] as? String {
+            bestAttemptContent.threadIdentifier = threadId
+        }
+
+        let newRequest = UNNotificationRequest(
+            identifier: request.identifier,
+            content: bestAttemptContent,
+            trigger: request.trigger
+        )
+        super.didReceive(newRequest, withContentHandler: contentHandler)
+    }
 }
 ```
+
+The override runs inside the NSE process and must complete within the
+~30 s / ~24 MB limits Apple imposes on Notification Service Extensions.
 
 ---
 
@@ -181,37 +334,26 @@ The SDK uses the standard keys from the FCM `notification` object.
 
 The `data` object is a free-form container for any custom key-value pairs you wish to send (e.g., `{"your_key": "your_value", "another_key": 123}`). Its sole purpose is to pass custom data to your application, which you can then access using the `NotificationCustomizer` to implement any advanced logic you require.
 
-### Advanced Customization with `NotificationCustomizer`
+### Advanced Customization
 
-For scenarios that require custom logic or advanced UI modifications, you can register a `NotificationCustomizer`. This is a powerful hook that gives you **complete freedom** to modify the notification before it's displayed. You receive the `NotificationCompat.Builder` and an `AppAmbitNotification` object, which contains the entire `data` payload from your FCM message.
+For platform-specific customization beyond what the automatic field handling
+covers, the entry points are:
 
+- **iOS**: override `didReceive` in your `AppAmbitNotificationService`
+  subclass — see [Template B](#template-b--mutating-content-in-didreceive).
+- **Android**: implement your own `IAppAmbitNotificationServiceExtension` in
+  Kotlin/Java and override the plugin's default by declaring your class in
+  your app's `AndroidManifest.xml`:
 
-The `data` payload is a **free-form key-value map**. You are not limited to any specific keys; you can send any data you need and use it to build your custom notification.
-
-**Example: Building a Custom Notification**
-
-The following example shows how to read custom fields from the `data` payload to add a custom action button. This is just one of many possibilities.
-
-1.  **Send any custom data** you need. The keys and values are completely up to you. For example:
-
-    ```json
-    {
-      "notification": {
-        "title": "New Message",
-        "body": "You have a new message from a friend."
-      },
-      "data": {
-        "key1": "Mark as Read",
-        "key2": "MARK_AS_READ_ACTION",
-        "any_other_key": "any_value"
-      }
-    }
+    ```xml
+    <application>
+      <meta-data
+          android:name="com.appambit.sdk.NotificationServiceExtension"
+          android:value="com.example.myapp.MyPushExtension"/>
+    </application>
     ```
 
-2.  **Register the `NotificationCustomizer`** and use your custom keys:
-
-    ```dart
-    PushNotificationsSdk.setNotificationCustomizer((data) {
-        debugPrint("Notification Data Received: $data");
-    });
-    ```
+    The class your `meta-data` points at receives `onNotificationForeground`
+    and `onNotificationBackground` callbacks from the AppAmbit Android SDK
+    even when the app is killed, with full access to `Context` and the
+    parsed `AppAmbitNotification` payload.

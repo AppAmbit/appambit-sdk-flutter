@@ -1,14 +1,15 @@
 PODS:
   - appambit_sdk_flutter (0.0.1):
-    - AppAmbitSdk (= 0.5.0)
+    - AppAmbitSdk (= 1.0.0)
     - Flutter
   - appambit_sdk_push_notifications (0.0.1):
-    - AppAmbitPushNotifications (= 0.5.0)
-    - AppAmbitSdk (= 0.5.0)
+    - AppAmbitPushNotifications (= 1.0.0)
+    - AppAmbitSdk (= 1.0.0)
     - Flutter
-  - AppAmbitPushNotifications (0.5.0):
+  - AppAmbitPushNotifications (1.0.0):
     - AppAmbitSdk
-  - AppAmbitSdk (0.5.0)
+  - AppAmbitPushNotificationsExtension (1.0.0)
+  - AppAmbitSdk (1.0.0)
   - Flutter (1.0.0)
   - integration_test (0.0.1):
     - Flutter
@@ -16,12 +17,14 @@ PODS:
 DEPENDENCIES:
   - appambit_sdk_flutter (from `.symlinks/plugins/appambit_sdk_flutter/ios`)
   - appambit_sdk_push_notifications (from `.symlinks/plugins/appambit_sdk_push_notifications/ios`)
+  - AppAmbitPushNotificationsExtension (= 1.0.0)
   - Flutter (from `Flutter`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
 
 SPEC REPOS:
   trunk:
     - AppAmbitPushNotifications
+    - AppAmbitPushNotificationsExtension
     - AppAmbitSdk
 
 EXTERNAL SOURCES:
@@ -35,13 +38,14 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/integration_test/ios"
 
 SPEC CHECKSUMS:
-  appambit_sdk_flutter: 4925ce687473b8b7afe704af073d9e1e4a784f89
-  appambit_sdk_push_notifications: 41c5c9ab6bd5403a9d5672d3e0059044a7c95ebb
-  AppAmbitPushNotifications: 02194d04392e216901a954303e0ba6e40519513b
-  AppAmbitSdk: 8bc12b7ecdca6c1f99e259abc1bc988e6f393b07
+  appambit_sdk_flutter: d8fc5b52e623432c6da59711a90b2dcef3b4d7e8
+  appambit_sdk_push_notifications: 136b14c2d5e3bc318c5fce31c181c6ae10b571ca
+  AppAmbitPushNotifications: 28bd6f53c725e00decab7ad237cfcb1d63f8161d
+  AppAmbitPushNotificationsExtension: 73ee92dd7a0f5fde53e24096a45bd49d6e88a50e
+  AppAmbitSdk: ac397240eccc94a28d66a262e063652ca2bbd5c3
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
 
-PODFILE CHECKSUM: 2130f511c3368526f7aff431c1d0fdbe599fb094
+PODFILE CHECKSUM: 162d114b29884624adcf13d39d5d7adc6b31e279
 
 COCOAPODS: 1.16.2

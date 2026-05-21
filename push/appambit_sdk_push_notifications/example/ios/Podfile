@@ -30,6 +30,13 @@ flutter_ios_podfile_setup
 target 'Runner' do
   use_frameworks!
 
+  # Local development overrides: point the AppAmbit iOS pods at the sibling
+  # `appambit-sdk-ios` checkout. Remove these once the pods are published.
+  pod 'AppAmbitSdk',
+      :path => '../../../../../appambit-sdk-ios/AppAmbitSdk'
+  pod 'AppAmbitPushNotifications',
+      :path => '../../../../../appambit-sdk-ios/Push/AppAmbitPushNotifications'
+
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   target 'RunnerTests' do
     inherit! :search_paths
