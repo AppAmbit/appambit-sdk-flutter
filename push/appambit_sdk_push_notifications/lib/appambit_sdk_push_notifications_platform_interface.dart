@@ -33,9 +33,9 @@ abstract class AppambitSdkPushNotificationsPlatform extends PlatformInterface {
     );
   }
 
-  Future<bool> hasSystemPermission() {
+  Future<bool> hasNotificationPermission() {
     throw UnimplementedError(
-      'hasSystemPermission() has not been implemented.',
+      'hasNotificationPermission() has not been implemented.',
     );
   }
 

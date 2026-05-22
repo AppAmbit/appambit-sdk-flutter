@@ -55,8 +55,8 @@ class MethodChannelAppambitSdkPushNotifications
   }
 
   @override
-  Future<bool> hasSystemPermission() async {
-    final bool? value = await _channel.invokeMethod<bool>('hasSystemPermission');
+  Future<bool> hasNotificationPermission() async {
+    final bool? value = await _channel.invokeMethod<bool>('hasNotificationPermission');
     return value ?? false;
   }
 

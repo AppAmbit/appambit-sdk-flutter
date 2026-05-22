@@ -90,11 +90,29 @@ class AndroidPushData {
 }
 
 /// iOS-specific push payload extras.
+///
+/// Surfaces the standard `aps` fields the SDK forwards to Dart. The raw `aps`
+/// dictionary itself is not copied into [PushNotificationData.data].
 class IosPushData {
   final String? subtitle;
+  final int? badge;
+  final String? sound;
+  final String? category;
+  final String? threadId;
 
-  const IosPushData({this.subtitle});
+  const IosPushData({
+    this.subtitle,
+    this.badge,
+    this.sound,
+    this.category,
+    this.threadId,
+  });
 
-  factory IosPushData.fromMap(Map<dynamic, dynamic> map) =>
-      IosPushData(subtitle: map['subtitle'] as String?);
+  factory IosPushData.fromMap(Map<dynamic, dynamic> map) => IosPushData(
+        subtitle: map['subtitle'] as String?,
+        badge: (map['badge'] as num?)?.toInt(),
+        sound: map['sound'] as String?,
+        category: map['category'] as String?,
+        threadId: map['threadId'] as String?,
+      );
 }

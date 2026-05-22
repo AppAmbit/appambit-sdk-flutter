@@ -32,7 +32,7 @@ class _CrashesViewState extends State<CrashesView> {
   Future<void> _initNotificationState() async {
     final bool isEnabled = await PushNotificationsSdk.isNotificationsEnabled();
     final bool hasPermission =
-        await PushNotificationsSdk.hasSystemPermission();
+        await PushNotificationsSdk.hasNotificationPermission();
     setState(() {
       granted = isEnabled && hasPermission;
       if (hasPermission) {

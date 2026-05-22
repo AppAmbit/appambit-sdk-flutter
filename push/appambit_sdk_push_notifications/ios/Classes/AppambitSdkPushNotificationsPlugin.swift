@@ -52,7 +52,7 @@ public class AppambitSdkPushNotificationsPlugin: NSObject, FlutterPlugin {
                 DispatchQueue.main.async { result(granted) }
             }
 
-        case "hasSystemPermission":
+        case "hasNotificationPermission":
             result(PushNotifications.hasNotificationPermission())
 
         case "setForegroundListener", "setOpenedListener":
@@ -83,7 +83,9 @@ public class AppambitSdkPushNotificationsPlugin: NSObject, FlutterPlugin {
     // MARK: - Payload mapping
 
     /// Converts an APNs `userInfo` dictionary into the Dart `PushNotificationData`
-    /// map shape. Mirrors `AppAmbitNotification.from(userInfo:)` from the iOS SDK.
+    /// map shape. Top-level custom keys are forwarded in `data`; the standard
+    /// `aps` fields are surfaced under `ios`. The raw `aps` dictionary is not
+    /// copied into `data`.
     private static func parsePayload(_ userInfo: [AnyHashable: Any]) -> [String: Any] {
         let aps = userInfo["aps"] as? [String: Any]
         let alert = aps?["alert"] as? [String: Any]
@@ -99,12 +101,19 @@ public class AppambitSdkPushNotificationsPlugin: NSObject, FlutterPlugin {
             data[k] = "\(value)"
         }
 
+        var ios: [String: Any] = [:]
+        if let subtitle { ios["subtitle"] = subtitle }
+        if let badge = aps?["badge"] as? Int { ios["badge"] = badge }
+        if let sound = aps?["sound"] as? String { ios["sound"] = sound }
+        if let category = aps?["category"] as? String { ios["category"] = category }
+        if let threadId = aps?["thread-id"] as? String { ios["threadId"] = threadId }
+
         var payload: [String: Any] = [:]
         if let title { payload["title"] = title }
         if let body { payload["body"] = body }
         if let imageUrl { payload["imageUrl"] = imageUrl }
         if !data.isEmpty { payload["data"] = data }
-        if let subtitle { payload["ios"] = ["subtitle": subtitle] }
+        if !ios.isEmpty { payload["ios"] = ios }
         return payload
     }
 }

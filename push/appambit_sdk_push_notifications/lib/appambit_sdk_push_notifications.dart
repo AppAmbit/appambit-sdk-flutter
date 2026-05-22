@@ -59,8 +59,8 @@ class PushNotificationsSdk {
   /// enable/disable flag, combine with [isNotificationsEnabled].
   ///
   /// Available on: **Android + iOS**.
-  static Future<bool> hasSystemPermission() =>
-      AppambitSdkPushNotificationsPlatform.instance.hasSystemPermission();
+  static Future<bool> hasNotificationPermission() =>
+      AppambitSdkPushNotificationsPlatform.instance.hasNotificationPermission();
 
   /// Enables or disables push delivery at the SDK level.
   ///
@@ -75,7 +75,7 @@ class PushNotificationsSdk {
 
   /// Returns the current SDK-level enabled state set via
   /// [setNotificationsEnabled]. Does **not** reflect the OS permission
-  /// (use [hasSystemPermission] for that).
+  /// (use [hasNotificationPermission] for that).
   ///
   /// Available on: **Android + iOS**.
   static Future<bool> isNotificationsEnabled() =>
