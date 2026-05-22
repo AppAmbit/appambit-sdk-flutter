@@ -182,6 +182,23 @@ This method updates the opt-out status on the AppAmbit dashboard and stops the d
 var isEnabled = await PushNotificationsSdk.isNotificationsEnabled();
 ```
 
+### System Permission vs. SDK Toggle
+
+`hasNotificationPermission()` and `isNotificationsEnabled()` report **two
+independent** states — check the one you actually need:
+
+| Method | Returns |
+|---|---|
+| `hasNotificationPermission()` | Whether the **OS** currently allows this app to show notifications (iOS authorization status / Android 13+ `POST_NOTIFICATIONS` grant). The user controls this from system settings or the permission prompt. |
+| `isNotificationsEnabled()` | The **SDK-level** toggle set via `setNotificationsEnabled(bool)` and synced to your AppAmbit dashboard. Independent of the OS permission. |
+
+```dart
+final hasOsPermission = await PushNotificationsSdk.hasNotificationPermission();
+final sdkEnabled      = await PushNotificationsSdk.isNotificationsEnabled();
+
+// A device shows notifications only when BOTH are true.
+```
+
 ### Permission Listener (Optional)
 
 To know if the user granted or denied the notification permission, pass a callback.
@@ -210,6 +227,38 @@ PushNotificationsSdk.setForegroundListener((data) {
 
 PushNotificationsSdk.setOpenedListener((data) {
   print('User tapped: ${data.title}');
+});
+```
+
+The shape of the `PushNotificationData` each listener receives is described in
+[Notification data model](#notification-data-model).
+
+### Notification data model
+
+`PushNotificationData` is delivered to the foreground/opened listeners and to
+the Android background handler.
+
+| Field | Type | Notes |
+|---|---|---|
+| `title` | `String?` | Cross-platform. |
+| `body` | `String?` | Cross-platform. |
+| `imageUrl` | `String?` | Cross-platform. |
+| `data` | `Map<String, String>?` | Your custom payload key-value pairs. The raw iOS `aps` dictionary is **not** included here. |
+| `android` | `AndroidPushData?` | Android-only extras; `null` on iOS. |
+| `ios` | `IosPushData?` | iOS-only extras; `null` on Android. |
+
+**`AndroidPushData`** — `color`, `smallIconName`, `ticker`, `visibility`,
+`channelId`, `priority`, `tag`, `sound`, `clickAction` (all `String?`), and
+`sticky` (`bool?`).
+
+**`IosPushData`** — `subtitle`, `sound`, `category`, `threadId` (all `String?`)
+and `badge` (`int?`), parsed from the APNs `aps`.
+
+```dart
+PushNotificationsSdk.setOpenedListener((data) {
+  final badge = data.ios?.badge;            // iOS only
+  final channel = data.android?.channelId;  // Android only
+  final custom = data.data?['your_key'];    // cross-platform
 });
 ```
 
@@ -393,9 +442,43 @@ covers, the entry points are:
 
 - **iOS**: override `didReceive` in your `AppAmbitNotificationService`
   subclass — see [Template B](#template-b--mutating-content-in-didreceive).
-- **Android**: implement your own `IAppAmbitNotificationServiceExtension` in
-  Kotlin/Java and override the plugin's default by declaring your class in
-  your app's `AndroidManifest.xml`:
+- **Android**: provide your own notification-service extension. There are two
+  ways, depending on whether you still want the Dart background handler:
+
+  **Recommended — subclass `AppambitFlutterPushExtension`.** This keeps the
+  Dart bridge (your `setBackgroundHandler` callback) working. Override the
+  `Context` overload, do your native work, and call `super` so the payload
+  still reaches Dart:
+
+    ```kotlin
+    package com.example.myapp
+
+    import android.content.Context
+    import com.appambit.sdk.models.AppAmbitNotification
+    import com.example.appambit_sdk_push_notifications.AppambitFlutterPushExtension
+
+    class MyPushExtension : AppambitFlutterPushExtension() {
+        override fun onNotificationBackground(
+            context: Context,
+            notification: AppAmbitNotification,
+        ) {
+            // Native logic — e.g. read notification.title / notification.data
+            super.onNotificationBackground(context, notification) // keep Dart dispatch
+        }
+    }
+    ```
+
+  **Full control — implement `IAppAmbitNotificationServiceExtension` directly.**
+  Use this only if you don't need the Dart background handler; implementing the
+  interface from scratch replaces the bridge. The interface
+  (`com.appambit.sdk.IAppAmbitNotificationServiceExtension`) exposes
+  `onNotificationForeground` and `onNotificationBackground`, each with a
+  single-arg `(AppAmbitNotification)` form and a
+  `(Context, AppAmbitNotification)` form — use the latter when you need a
+  `Context`.
+
+  Either way, point the SDK at your class via the meta-data in your app's
+  `AndroidManifest.xml` (this overrides the plugin's default):
 
     ```xml
     <application>
@@ -405,7 +488,7 @@ covers, the entry points are:
     </application>
     ```
 
-    The class your `meta-data` points at receives `onNotificationForeground`
-    and `onNotificationBackground` callbacks from the AppAmbit Android SDK
-    even when the app is killed, with full access to `Context` and the
-    parsed `AppAmbitNotification` payload.
+    The callbacks fire even when the app is killed, with full access to
+    `Context` and the parsed `AppAmbitNotification` — `title`, `body`,
+    `imageUrl`, `data`, plus Android extras such as `color`, `channelId`,
+    `priority`, and `sound`.
