@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:appambit_sdk_flutter_example/analytics_view.dart';
 import 'package:appambit_sdk_flutter_example/crashes_view.dart';
 import 'package:appambit_sdk_flutter_example/remote_config_view.dart';
@@ -18,7 +16,7 @@ void main() async {
   //Uncomment the line for automatic session management
   //AppAmbitSdk.enableManualSession();
   AppAmbitSdk.enableConfig();
-  AppAmbitSdk.start('<YOUR-APPKEY>');
+  AppAmbitSdk.start(appKey: '<YOUR-APPKEY>');
 
   PushNotificationsSdk.setForegroundListener((data) {
     debugPrint('[Push] Foreground: ${data.title}');
