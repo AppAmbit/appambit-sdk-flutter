@@ -4,6 +4,8 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -38,6 +40,10 @@ class AppambitSdkPushNotificationsPlugin :
         private const val EXTRA_IMAGE_URL  = "appambit_image_url"
         private const val EXTRA_DATA_KEYS  = "appambit_data_keys"
         private const val EXTRA_DATA_VALUES = "appambit_data_keys_values"
+
+        private const val PREFS_NAME         = "appambit_push_prefs"
+        private const val KEY_HAS_PENDING    = "appambit_push_has_pending"
+        private const val KEY_PENDING_ENABLED = "appambit_push_pending_enabled"
     }
 
     private lateinit var channel: MethodChannel
@@ -65,17 +71,51 @@ class AppambitSdkPushNotificationsPlugin :
     override fun onMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
             "start" -> {
-                // Use the decoupled PushKernel (not PushNotifications.start) so the FCM token
-                // is fetched WITHOUT updating the consumer on every launch. PushNotifications
-                // .setNotificationsEnabled is what syncs the consumer, only on user toggle.
+                // Boot the SDK so it registers its FCM token listener. We use PushKernel.start
+                // (not PushNotifications.start) to avoid calling updateConsumer with a hardcoded
+                // pushEnabled=true on every launch. The token listener below handles the cases
+                // where a new token is needed (e.g. after deleteToken during offline disable).
                 PushKernel.start(context)
+
+                // Install a token listener so that when FCM delivers a new token (e.g. after
+                // deleteToken was called during an offline disable), the correct enabled state
+                // is synced to the backend via the public PushNotifications facade, which reads
+                // the stored token internally. pushEnabled=null tells the facade to read the
+                // stored enabled state from SharedPrefs.
+                PushKernel.setTokenListener(object : PushKernel.TokenListener {
+                    override fun onNewToken(token: String) {
+                        // PushNotifications.setNotificationsEnabled reads the token from the
+                        // SDK's own store — no getCurrentToken() needed here. handleNewToken
+                        // deduplicates (if token == currentToken: return), so calling
+                        // setNotificationsEnabled here does NOT cause an infinite loop.
+                        PushNotifications.setNotificationsEnabled(
+                            context,
+                            PushKernel.isNotificationsEnabled(context)
+                        )
+                        clearPendingSync()
+                    }
+                })
+
+                // Flush any state that couldn't be sent while offline.
+                flushPendingSyncIfNeeded()
+
                 installNotificationListenersIfNeeded()
                 result.success(null)
             }
             "setNotificationsEnabled" -> {
                 val enabled = call.argument<Boolean>("enabled") ?: true
-                // Updates the AppAmbit consumer on the backend (only invoked on user toggle).
-                PushNotifications.setNotificationsEnabled(context, enabled)
+                savePendingSync(enabled)
+                if (isNetworkAvailable()) {
+                    // Online: use the public facade — it updates SharedPrefs, DB, and backend.
+                    PushNotifications.setNotificationsEnabled(context, enabled)
+                    clearPendingSync()
+                } else {
+                    // Offline: only update in-memory / SharedPrefs state so this session is
+                    // consistent. Do NOT call PushNotifications (which would write to DB and
+                    // contaminate deduplication), leaving the DB at its previous value so that
+                    // flushPendingSyncIfNeeded can detect the mismatch on the next online launch.
+                    PushKernel.setNotificationsEnabled(context, enabled)
+                }
                 result.success(null)
             }
             "isNotificationsEnabled" -> {
@@ -123,6 +163,62 @@ class AppambitSdkPushNotificationsPlugin :
                 }
             }
             else -> result.notImplemented()
+        }
+    }
+
+    // MARK: - Pending sync
+
+    private fun savePendingSync(enabled: Boolean) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+            .putBoolean(KEY_HAS_PENDING, true)
+            .putBoolean(KEY_PENDING_ENABLED, enabled)
+            .apply()
+    }
+
+    private fun clearPendingSync() {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+            .remove(KEY_HAS_PENDING)
+            .remove(KEY_PENDING_ENABLED)
+            .apply()
+    }
+
+    // Flushes any consumer update that was deferred because the device was offline.
+    //
+    // For disable (enabled=false): PushNotifications.setNotificationsEnabled reads the
+    // stored token from DB (the last valid FCM token before deleteToken was called).
+    //
+    // For enable (enabled=true) with no token yet: skipped here; the token listener
+    // installed in "start" handles it when FCM delivers the new token, which happens
+    // on the next online launch after deleteToken was called during offline disable.
+    private fun flushPendingSyncIfNeeded() {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        if (!prefs.getBoolean(KEY_HAS_PENDING, false)) return
+        val enabled = prefs.getBoolean(KEY_PENDING_ENABLED, true)
+
+        if (!isNetworkAvailable()) return
+
+        if (!enabled) {
+            // Disable: the stored FCM token in the DB is still valid (deleteToken only
+            // clears the in-memory token, not the DB copy). The public facade reads it.
+            PushNotifications.setNotificationsEnabled(context, false)
+            clearPendingSync()
+        }
+        // Enable with no token: token listener fires when FCM delivers the new token.
+        // PushKernel.isNotificationsEnabled will return true (set by PushKernel.setNotificationsEnabled
+        // during the offline enable call), so onNewToken will call setNotificationsEnabled(true).
+    }
+
+    // MARK: - Network
+
+    private fun isNetworkAvailable(): Boolean {
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            ?: return false
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            cm.getNetworkCapabilities(cm.activeNetwork)
+                ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+        } else {
+            @Suppress("DEPRECATION")
+            cm.activeNetworkInfo?.isConnected == true
         }
     }
 

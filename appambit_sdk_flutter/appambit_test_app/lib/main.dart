@@ -16,15 +16,16 @@ void main() async {
   //Uncomment the line for automatic session management
   //AppAmbitSdk.enableManualSession();
   AppAmbitSdk.enableConfig();
-  AppAmbitSdk.start(appKey: '<YOUR-APPKEY>');
+  AppAmbitSdk.start(appKey: '11e33bc2-8d11-4e00-a15c-1d5f8f00ff73');
+  PushNotificationsSdk.start();
 
   PushNotificationsSdk.setForegroundListener((data) {
     debugPrint('[Push] Foreground: ${data.title}');
-  });
+  }); 
 
   PushNotificationsSdk.setOpenedListener((data) {
     // Defer until the next frame so the Navigator is mounted, especially on
-    // cold-start when the tap launches the app.
+    // cold-start when the tap launches the5app.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       rootNavigatorKey.currentState?.push(
         MaterialPageRoute(
@@ -40,7 +41,7 @@ void main() async {
   // marked with @pragma('vm:entry-point'); see [pushBackgroundHandler] below.
   await PushNotificationsSdk.Android.setBackgroundHandler(pushBackgroundHandler);
 
-  PushNotificationsSdk.start();
+
 
   runApp(const MyApp());
 }

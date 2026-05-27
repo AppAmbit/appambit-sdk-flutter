@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   package="com.example.appambit_sdk_push_notifications">
 
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
   <application>
     <!-- Registers the plugin's bridge as the AppAmbit Notification Service
          Extension on Android. The AppAmbit SDK loads this class via
