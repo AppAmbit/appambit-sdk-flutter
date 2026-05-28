@@ -1,6 +1,5 @@
 import Flutter
 import UIKit
-import AppAmbit
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -8,7 +7,6 @@ import AppAmbit
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    AppAmbit.start(appKey: "<YOUR-APPKEY>")
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
