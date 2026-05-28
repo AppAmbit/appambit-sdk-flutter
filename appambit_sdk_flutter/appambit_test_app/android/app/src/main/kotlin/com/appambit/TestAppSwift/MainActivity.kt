@@ -1,4 +1,4 @@
-package com.AppAmbit.TestApp
+package com.AppAmbit.TestAppSwift
 
 import io.flutter.embedding.android.FlutterActivity
 
