@@ -16,7 +16,7 @@ void main() async {
   //Uncomment the line for automatic session management
   //AppAmbitSdk.enableManualSession();
   AppAmbitSdk.enableConfig();
-  AppAmbitSdk.start(appKey: '<YOUR-APPKEY>');
+  AppAmbitSdk.start(appKey: 'fafe9c5f-526b-4fa7-9732-a39e0346f469');
   PushNotificationsSdk.start();
 
   PushNotificationsSdk.setForegroundListener((data) {
