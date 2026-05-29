@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  FLUTTER_VERSION: '3.35.4'
+  FLUTTER_VERSION: '3.44.0'
   FLUTTER_PACKAGE_PATH: 'appambit_sdk_flutter'
   PUSH_PACKAGE_PATH: 'push/appambit_sdk_push_notifications'
 
@@ -34,6 +34,7 @@ jobs:
         with:
           channel: 'stable'
           flutter-version: '${{ env.FLUTTER_VERSION }}'
+          cache: false
 
       - name: Install dependencies
         working-directory: ${{ env.FLUTTER_PACKAGE_PATH }}
@@ -77,7 +78,7 @@ jobs:
         run: flutter pub publish --dry-run
 
       - name: Create GitHub Release
-        if: ${{ github.ref_name == 'main' }}
+        # if: ${{ github.ref_name == 'main' }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.new_tag }}
@@ -86,7 +87,7 @@ jobs:
           prerelease: ${{ steps.version.outputs.is_prerelease }}
       
       - name: Publish Package
-        if: steps.version.outputs.is_prerelease == 'false' && github.ref_name == 'main'
+        # if: steps.version.outputs.is_prerelease == 'false'
         working-directory: ${{ env.FLUTTER_PACKAGE_PATH }}
         run: flutter pub publish --force
 
@@ -99,6 +100,6 @@ jobs:
         run: flutter pub publish --dry-run
       
       - name: Publish Package (Push SDK)
-        if: steps.version.outputs.is_prerelease == 'false' && github.ref_name == 'main'
+        # if: steps.version.outputs.is_prerelease == 'false' && github.ref_name == 'main'
         working-directory: ${{ env.PUSH_PACKAGE_PATH }}
         run: flutter pub publish --force
