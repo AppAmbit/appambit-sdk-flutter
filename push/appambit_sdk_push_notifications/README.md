@@ -350,13 +350,32 @@ In Xcode:
 3. Go to **Signing & Capabilities**
 4. Click **+ Capability** and add **Push Notifications**
 
-**Important:** Adding the capability via Xcode UI automatically injects the `aps-environment` entitlement into your `.entitlements` file. If you manage `Runner.entitlements` manually (e.g. via version control or CI), make sure this key is present — without it APNs will reject device registration with *"no se encontró ninguna cadena de autorización aps-environment"* and no token will ever be delivered:
+#### 2. Configure the entitlements file
+
+Push Notifications require the `aps-environment` entitlement in `ios/Runner/Runner.entitlements`. If you added the capability via Xcode UI in the previous step, this is handled automatically. If you manage the file manually (e.g. via CI or version control), two things must be in place:
+
+**Step 1 — Wire the entitlements file to Xcode**
+
+In Xcode, select the **Runner** target → **Build Settings** → search for **Code Signing Entitlements** → set the value to `Runner/Runner.entitlements` for **both** Debug and Release configurations.
+
+**Step 2 — Add the `aps-environment` key to the entitlements file**
+
+In your Flutter project, open the file at `ios/Runner/Runner.entitlements` (you can open it from the Finder, or in Xcode by expanding **Runner → Runner** in the Project Navigator and clicking `Runner.entitlements`). It is an XML plist — add the `aps-environment` key inside the `<dict>`:
 
 ```xml
-<!-- ios/Runner/Runner.entitlements -->
-<key>aps-environment</key>
-<string>development</string>   <!-- use "production" for App Store builds -->
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>aps-environment</key>
+    <string>development</string>   <!-- use "production" for App Store / TestFlight builds -->
+</dict>
+</plist>
 ```
+
+If the file does not exist yet, create it at that path with the content above.
+
+> Without `aps-environment`, APNs rejects device registration and no push token is ever delivered to the app.
 
 #### 2. Install Pods
 
