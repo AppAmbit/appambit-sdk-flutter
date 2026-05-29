@@ -62,7 +62,7 @@ Add the AppAmbit Flutter SDK to your app’s `pubspec.yml`.
 dependencies:
   flutter:
     sdk: flutter
-  appambit_sdk_flutter: ^0.3.0
+  appambit_sdk_flutter: ^1.0.0
 ```
 
 and then

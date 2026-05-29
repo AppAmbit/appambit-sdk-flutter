@@ -61,8 +61,9 @@ public class AppAmbitSdkFlutterPlugin: NSObject, FlutterPlugin {
           return
         }
         DispatchQueue.main.async {
-          AppAmbit.start(appKey: appKey)
-          result(nil)
+          AppAmbit.start(appKey: appKey) {
+            result(nil)
+          }
         }
 
       case "addBreadcrumb":

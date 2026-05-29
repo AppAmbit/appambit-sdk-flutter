@@ -1,3 +1,15 @@
+## Version 1.0.0
+
+### AppAmbit Push Notifications SDK
+
+* **[Feature]** Added foreground, background, and opened notification listeners with cleanup callbacks (`setForegroundListener`, `setOpenedListener`, `PushNotificationsSdk.Android.setBackgroundListener`).
+* **[Feature]** Added `PushNotificationData` model with platform-specific fields (`AndroidPushData`, `IosPushData`) covering color, icon, badge, channel, thread ID, and more.
+* **[Feature]** Added Android background handler support via headless Flutter isolate — handles notifications when the app is killed. Handler must be a top-level or static function annotated `@pragma('vm:entry-point')`.
+* **[Bugfix]** Fixed `setNotificationsEnabled` / `isNotificationsEnabled` SDK-level toggle with offline state sync to backend.
+* **[Feature]** Added `requestNotificationPermissionWithResult` (async, returns granted status) and `hasNotificationPermission` (check the system permission without prompting).
+* **[Refactor]** Renamed `hasSystemPermission` → `hasNotificationPermission` for API consistency.
+* **[Feature]** Added iOS Notification Service Extension support — subclass `AppAmbitNotificationService` (pod `AppAmbitPushNotificationsExtension`) for rich notifications and image attachments.
+
 ## Version 0.3.0
 
 ### AppAmbit

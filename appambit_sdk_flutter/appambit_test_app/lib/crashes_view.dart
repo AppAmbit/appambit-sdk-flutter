@@ -68,8 +68,11 @@ class _CrashesViewState extends State<CrashesView> {
         });
         await _showInfo("Push notifications disabled");
       } else {
-        var isGranted = await PushNotificationsSdk.requestNotificationPermissionWithResult();
-        
+        bool isGranted = false;
+        await PushNotificationsSdk.requestNotificationPermission(
+          callback: (granted) => isGranted = granted,
+        );
+
         if (isGranted) {
            await PushNotificationsSdk.setNotificationsEnabled(true);
         }

@@ -1,3 +1,21 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   package="com.example.appambit_sdk_push_notifications">
+
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+  <application>
+    <!-- Registers the plugin's bridge as the AppAmbit Notification Service
+         Extension on Android. The AppAmbit SDK loads this class via
+         reflection from the FirebaseMessagingService process when a push
+         arrives in background or with the app killed; the bridge then
+         dispatches the payload to the developer's Dart background handler
+         registered via `PushNotificationsSdk.Android.setBackgroundHandler`.
+
+         Devs who need to extend or replace this behavior should subclass
+         AppambitFlutterPushExtension and override this meta-data value
+         in their app's AndroidManifest. -->
+    <meta-data
+        android:name="com.appambit.sdk.NotificationServiceExtension"
+        android:value="com.example.appambit_sdk_push_notifications.AppambitFlutterPushExtension"/>
+  </application>
 </manifest>
