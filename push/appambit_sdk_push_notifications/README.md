@@ -350,6 +350,14 @@ In Xcode:
 3. Go to **Signing & Capabilities**
 4. Click **+ Capability** and add **Push Notifications**
 
+**Important:** Adding the capability via Xcode UI automatically injects the `aps-environment` entitlement into your `.entitlements` file. If you manage `Runner.entitlements` manually (e.g. via version control or CI), make sure this key is present — without it APNs will reject device registration with *"no se encontró ninguna cadena de autorización aps-environment"* and no token will ever be delivered:
+
+```xml
+<!-- ios/Runner/Runner.entitlements -->
+<key>aps-environment</key>
+<string>development</string>   <!-- use "production" for App Store builds -->
+```
+
 #### 2. Install Pods
 
 ```bash
