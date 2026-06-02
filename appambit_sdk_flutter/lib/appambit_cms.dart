@@ -132,12 +132,4 @@ class AppAmbitCms {
   }) {
     return AppAmbitCmsQuery<T>(contentType, fromJson: fromJson);
   }
-
-  static Future<void> clearCache(String contentType) {
-    return AppAmbitSdkFlutterPlatform.instance.clearCmsCache(contentType);
-  }
-
-  static Future<void> clearAllCache() {
-    return AppAmbitSdkFlutterPlatform.instance.clearAllCmsCache();
-  }
 }

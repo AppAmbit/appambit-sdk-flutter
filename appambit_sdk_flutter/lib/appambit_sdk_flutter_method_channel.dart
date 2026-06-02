@@ -142,16 +142,6 @@ class MethodChannelAppAmbitSdkFlutter extends AppAmbitSdkFlutterPlatform {
   final MethodChannel _cms = const MethodChannel('com.appambit/cms');
 
   @override
-  Future<void> clearCmsCache(String contentType) async {
-    await _cms.invokeMethod('clearCache', {'contentType': contentType});
-  }
-
-  @override
-  Future<void> clearAllCmsCache() async {
-    await _cms.invokeMethod('clearAllCache');
-  }
-
-  @override
   Future<List<Map<String, dynamic>>> getCmsList({
     required String contentType,
     required List<Map<String, dynamic>> filters,
