@@ -2,7 +2,7 @@ import 'package:appambit_sdk_flutter/appambit_cms.dart';
 import 'package:flutter/material.dart';
 import 'package:appambit_sdk_flutter_example/models/cms_example_model.dart';
 
-const String _collection = 'tech_inventory';
+const String _collection = 'blog_extended';
 
 class CmsView extends StatefulWidget {
   const CmsView({super.key});
@@ -14,36 +14,35 @@ class CmsView extends StatefulWidget {
 class _CmsViewState extends State<CmsView> {
   final TextEditingController _searchController = TextEditingController();
 
-  List<TechItem> _items = [];
+  List<ArticleItem> _items = [];
   bool _isLoading = false;
   bool _isEmpty = false;
 
   final List<String> _filters = [
     "All List",
-    "Equals: item_sku = TEC-02",
-    "Not Equals: item_sku ≠ TEC-02",
-    "In List: category = Cat 1",
-    "Boolean: in_stock = true",
-    "Contains: product_name contains 'Pro'",
-    "Starts With: item_sku starts with 'TEC'",
-    "In List: item_sku in [TEC-01, TEC-02]",
-    "Not In List: item_sku not in [TEC-01, TEC-02]",
-    "Greater Than: price > 500",
-    "Greater Or Equal: price >= 500",
-    "Less Than: price < 500",
-    "Less Or Equal: price <= 500",
-    "Order By product_name ASC",
-    "Order By product_name DESC",
-    "Order By price ASC",
-    "Order By price DESC",
+    "Equals: is_published = true",
+    "Not Equals: is_published ≠ true",
+    "In List: category = [fashion]",
+    "Contains: title contains 'iOS'",
+    "Starts With: title starts with 'Hack'",
+    "In List: category in [fashion, science]",
+    "Not In List: category not in [fashion]",
+    "Greater Than: views_count > 700",
+    "Greater Or Equal: views_count >= 760",
+    "Less Than: views_count < 760",
+    "Less Or Equal: views_count <= 760",
+    "Order By title ASC",
+    "Order By title DESC",
+    "Order By views_count ASC",
+    "Order By views_count DESC",
     "Pagination: Page 1, 2 per page",
     "Pagination: Page 2, 2 per page",
-    "Combined: Search 'Pro' + Page 1 (3/page)",
-    "Combined: In Stock + Order price ASC",
-    "Combined: category Cat 1 + Order name ASC",
-    "Combined: price >= 1000 + In Stock + Page 1 (5/page)",
-    "Combined: NOT IN [Cat 1,Cat 2] + Order price DESC",
-    "Combined: SKU starts TEC + category Cat 3",
+    "Combined: Search 'Swift' + Page 1 (3/page)",
+    "Combined: is_published=true + Order views_count ASC",
+    "Combined: category [fashion] + Order title ASC",
+    "Combined: views_count >= 700 + is_published=true + Page 1 (5/page)",
+    "Combined: NOT IN category [fashion] + Order views_count DESC",
+    "Combined: title starts 'Monetización' + category [tech]",
   ];
   late String _selectedFilter;
 
@@ -61,68 +60,65 @@ class _CmsViewState extends State<CmsView> {
 
   void _searchItems() {
     if (_searchController.text.isEmpty) return;
-    final q = AppAmbitCms.content<TechItem>(
+    final q = AppAmbitCms.content<ArticleItem>(
       _collection,
-      fromJson: TechItem.fromJson,
+      fromJson: ArticleItem.fromJson,
     );
     q.search(_searchController.text);
     _loadData(q);
   }
 
-  AppAmbitCmsQuery<TechItem> _buildQuery() {
-    final q = AppAmbitCms.content<TechItem>(
+  AppAmbitCmsQuery<ArticleItem> _buildQuery() {
+    final q = AppAmbitCms.content<ArticleItem>(
       _collection,
-      fromJson: TechItem.fromJson,
+      fromJson: ArticleItem.fromJson,
     );
 
     switch (_selectedFilter) {
-      case "Equals: item_sku = TEC-02":
-        q.equals("item_sku", "TEC-02");
+      case "Equals: is_published = true":
+        q.equals("is_published", "true");
         break;
-      case "Not Equals: item_sku ≠ TEC-02":
-        q.notEquals("item_sku", "TEC-02");
+      case "Not Equals: is_published ≠ true":
+        q.notEquals("is_published", "true");
         break;
-      case "In List: category = Cat 1":
-        q.inList("category", ["Cat 1"]);
+      case "In List: category = [fashion]":
+        q.inList("category", ["fashion"]);
         break;
-      case "Boolean: in_stock = true":
-        q.equals("in_stock", "true");
+      case "Contains: title contains 'iOS'":
+        q.contains("title", "iOS");
         break;
-      case "Contains: product_name contains 'Pro'":
-        q.contains("product_name", "Pro");
+      case "Starts With: title starts with 'Hack'":
+        q.startsWith("title", "Hack");
         break;
-      case "Starts With: item_sku starts with 'TEC'":
-        q.startsWith("item_sku", "TEC");
+      case "In List: category in [fashion, science]":
+        q.inList("category", ["fashion", "science"]);
         break;
-      case "In List: item_sku in [TEC-01, TEC-02]":
-        q.inList("item_sku", ["TEC-01", "TEC-02"]);
+      case "Not In List: category not in [fashion]":
+        q.notInList("category", ["fashion"]);
         break;
-      case "Not In List: item_sku not in [TEC-01, TEC-02]":
-        q.notInList("item_sku", ["TEC-01", "TEC-02"]);
+      case "Greater Than: views_count > 700":
+        q.greaterThan("views_count", 700);
         break;
-      case "Greater Than: price > 500":
-        q.greaterThan("price", 500);
+      case "Greater Or Equal: views_count >= 760":
+        q.greaterThanOrEqual("views_count", 760);
         break;
-      case "Greater Or Equal: price >= 500":
-        q.greaterThanOrEqual("price", 500);
+      case "Less Than: views_count < 760":
+        q.lessThan("views_count", 760);
         break;
-      case "Less Than: price < 500":
-        q.lessThan("price", 500);
+      case "Less Or Equal: views_count <= 760":
+        q.lessThanOrEqual("views_count", 760);
         break;
-      case "Less Or Equal: price <= 500":
-        q.lessThanOrEqual("price", 500);
+      case "Order By title ASC":
+        q.orderByAscending("title");
         break;
-      case "Order By product_name ASC":
-        q.orderByAscending("product_name");
+      case "Order By title DESC":
+        q.orderByDescending("title");
         break;
-      case "Order By product_name DESC":
-        q.orderByDescending("product_name");
+      case "Order By views_count ASC":
+        q.orderByAscending("views_count");
         break;
-      case "Order By price ASC":
-        q.orderByAscending("price");
-        break;
-      case "Order By price DESC":
-        q.orderByDescending("price");
+      case "Order By views_count DESC":
+        q.orderByDescending("views_count");
         break;
       case "Pagination: Page 1, 2 per page":
         q.getPage(1).getPerPage(2);
@@ -130,27 +126,27 @@ class _CmsViewState extends State<CmsView> {
       case "Pagination: Page 2, 2 per page":
         q.getPage(2).getPerPage(2);
         break;
-      case "Combined: Search 'Pro' + Page 1 (3/page)":
-        q.search("Pro").getPage(1).getPerPage(3);
+      case "Combined: Search 'Swift' + Page 1 (3/page)":
+        q.search("Swift").getPage(1).getPerPage(3);
         break;
-      case "Combined: In Stock + Order price ASC":
-        q.equals("in_stock", "true").orderByAscending("price");
+      case "Combined: is_published=true + Order views_count ASC":
+        q.equals("is_published", "true").orderByAscending("views_count");
         break;
-      case "Combined: category Cat 1 + Order name ASC":
-        q.inList("category", ["Cat 1"]).orderByAscending("product_name");
+      case "Combined: category [fashion] + Order title ASC":
+        q.inList("category", ["fashion"]).orderByAscending("title");
         break;
-      case "Combined: price >= 1000 + In Stock + Page 1 (5/page)":
+      case "Combined: views_count >= 700 + is_published=true + Page 1 (5/page)":
         q
-            .greaterThanOrEqual("price", 1000)
-            .equals("in_stock", "true")
+            .greaterThanOrEqual("views_count", 700)
+            .equals("is_published", "true")
             .getPage(1)
             .getPerPage(5);
         break;
-      case "Combined: NOT IN [Cat 1,Cat 2] + Order price DESC":
-        q.notInList("category", ["Cat 1", "Cat 2"]).orderByDescending("price");
+      case "Combined: NOT IN category [fashion] + Order views_count DESC":
+        q.notInList("category", ["fashion"]).orderByDescending("views_count");
         break;
-      case "Combined: SKU starts TEC + category Cat 3":
-        q.startsWith("item_sku", "TEC").inList("category", ["Cat 3"]);
+      case "Combined: title starts 'Monetización' + category [tech]":
+        q.startsWith("title", "Monetización").inList("category", ["tech"]);
         break;
       default:
         break;
@@ -158,7 +154,7 @@ class _CmsViewState extends State<CmsView> {
     return q;
   }
 
-  Future<void> _loadData(AppAmbitCmsQuery<TechItem> query) async {
+  Future<void> _loadData(AppAmbitCmsQuery<ArticleItem> query) async {
     setState(() {
       _isLoading = true;
       _isEmpty = false;
@@ -172,7 +168,7 @@ class _CmsViewState extends State<CmsView> {
         _isEmpty = results.isEmpty;
       });
     } catch (e) {
-      debugPrint("Error loading CMS data: \$e");
+      debugPrint("Error loading CMS data: $e");
       if (!mounted) return;
       setState(() {
         _items = [];
@@ -284,9 +280,9 @@ class _CmsViewState extends State<CmsView> {
                       setState(() {
                         _selectedFilter = "All List";
                       });
-                      final q = AppAmbitCms.content<TechItem>(
+                      final q = AppAmbitCms.content<ArticleItem>(
                         _collection,
-                        fromJson: TechItem.fromJson,
+                        fromJson: ArticleItem.fromJson,
                       );
                       await _loadData(q);
                     },
@@ -320,7 +316,7 @@ class _CmsViewState extends State<CmsView> {
                     padding: const EdgeInsets.all(12),
                     itemCount: _items.length,
                     itemBuilder: (context, index) {
-                      return _ProductCard(item: _items[index]);
+                      return _ArticleCard(item: _items[index]);
                     },
                   ),
           ),
@@ -330,10 +326,10 @@ class _CmsViewState extends State<CmsView> {
   }
 }
 
-class _ProductCard extends StatelessWidget {
-  final TechItem item;
+class _ArticleCard extends StatelessWidget {
+  final ArticleItem item;
 
-  const _ProductCard({required this.item});
+  const _ArticleCard({required this.item});
 
   @override
   Widget build(BuildContext context) {
@@ -354,9 +350,9 @@ class _ProductCard extends StatelessWidget {
                 width: 80,
                 height: 80,
                 color: Colors.grey[200],
-                child: item.productImageUrl?.isNotEmpty == true
+                child: item.featuredImageUrl?.isNotEmpty == true
                     ? Image.network(
-                        item.productImageUrl!,
+                        item.featuredImageUrl!,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) =>
                             const Center(
@@ -378,12 +374,12 @@ class _ProductCard extends StatelessWidget {
                 children: [
                   // Title
                   Text(
-                    item.productName ?? '—',
+                    item.title ?? '—',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   if (item.category.isNotEmpty) ...[
@@ -421,17 +417,17 @@ class _ProductCard extends StatelessWidget {
                   ],
                   const SizedBox(height: 6),
 
-                  // Description
-                  if (item.description?.isNotEmpty == true)
+                  // Body
+                  if (item.body?.isNotEmpty == true)
                     Text(
-                      item.description!,
+                      item.body!,
                       style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   const SizedBox(height: 6),
 
-                  // Meta Info (SKU, Price, Stock)
+                  // Meta Info (views, published, event date)
                   Wrap(
                     alignment: WrapAlignment.spaceBetween,
                     crossAxisAlignment: WrapCrossAlignment.center,
@@ -439,39 +435,32 @@ class _ProductCard extends StatelessWidget {
                     runSpacing: 4,
                     children: [
                       Text(
-                        item.itemSku ?? '—',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      Text(
-                        '\$${item.price?.toStringAsFixed(2) ?? "0.00"}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green,
-                        ),
-                      ),
-                      Text(
-                        "Stock: ${item.inStock == true ? 'True' : 'False'}",
+                        'Views: ${item.viewsCount ?? 0}',
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.blueGrey,
                         ),
                       ),
+                      Text(
+                        item.isPublished == true ? 'Published' : 'Unpublished',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: item.isPublished == true
+                              ? Colors.green
+                              : Colors.orange,
+                        ),
+                      ),
+                      if (item.eventDate?.isNotEmpty == true)
+                        Text(
+                          'Event: ${item.eventDate}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
                     ],
                   ),
-                  const SizedBox(height: 6),
-
-                  // Email
-                  if (item.supportEmail?.isNotEmpty == true)
-                    Text(
-                      '📧 ${item.supportEmail}',
-                      style: const TextStyle(fontSize: 11, color: Colors.grey),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
 
                   const Divider(height: 12, thickness: 1),
 
