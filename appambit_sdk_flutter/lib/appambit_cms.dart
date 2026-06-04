@@ -4,7 +4,6 @@ class AppAmbitCmsQuery<T> {
   final String _contentType;
   final T Function(Map<String, dynamic>) _fromJson;
   final List<Map<String, dynamic>> _nativeFilters = [];
-  final List<Map<String, dynamic>> _dartFilters = [];
   int? _page;
   int? _perPage;
   String? _orderBy;
@@ -59,12 +58,12 @@ class AppAmbitCmsQuery<T> {
   }
 
   AppAmbitCmsQuery<T> inList(String field, List<String> values) {
-    _dartFilters.add({'type': 'inList', 'field': field, 'value': values});
+    _nativeFilters.add({'type': 'inList', 'field': field, 'value': values});
     return this;
   }
 
   AppAmbitCmsQuery<T> notInList(String field, List<String> values) {
-    _dartFilters.add({'type': 'notInList', 'field': field, 'value': values});
+    _nativeFilters.add({'type': 'notInList', 'field': field, 'value': values});
     return this;
   }
 
@@ -94,34 +93,13 @@ class AppAmbitCmsQuery<T> {
     final rawList = await AppAmbitSdkFlutterPlatform.instance.getCmsList(
       contentType: _contentType,
       filters: _nativeFilters,
-      page: _dartFilters.isEmpty ? _page : null,
-      perPage: _dartFilters.isEmpty ? _perPage : null,
+      page: _page,
+      perPage: _perPage,
       orderBy: _orderBy,
       orderDir: _orderDir,
     );
 
-    var filtered = rawList;
-
-    for (final f in _dartFilters) {
-      final field = f['field'] as String;
-      final values = (f['value'] as List).map((e) => e.toString()).toList();
-      final negate = f['type'] == 'notInList';
-
-      filtered = filtered.where((item) {
-        final fieldVal = item[field];
-        final bool matches;
-
-        if (fieldVal is List) {
-          matches = fieldVal.any((v) => values.contains(v.toString()));
-        } else {
-          matches = values.contains(fieldVal?.toString());
-        }
-
-        return negate ? !matches : matches;
-      }).toList();
-    }
-
-    return filtered.map(_fromJson).toList();
+    return rawList.map(_fromJson).toList();
   }
 }
 
