@@ -17,17 +17,6 @@ class CmsFlutter {
         channel = MethodChannel(binding.binaryMessenger, "com.appambit/cms")
         channel.setMethodCallHandler { call, result ->
             when (call.method) {
-                "clearCache" -> {
-                    val contentType = call.argument<String>("contentType")
-                    if (contentType != null) {
-                        Cms.clearCache(contentType)
-                    }
-                    result.success(null)
-                }
-                "clearAllCache" -> {
-                    Cms.clearAllCache()
-                    result.success(null)
-                }
                 "getList" -> {
                     val contentType = call.argument<String>("contentType")
                     if (contentType == null) {
