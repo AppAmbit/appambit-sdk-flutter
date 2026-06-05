@@ -39,7 +39,7 @@ end
 target 'NotificationService' do
   use_frameworks!
 
-  pod 'AppAmbitPushNotificationsExtension', '1.0.0'
+  pod 'AppAmbitPushNotificationsExtension', '1.0.2'
 end
 
 post_install do |installer|

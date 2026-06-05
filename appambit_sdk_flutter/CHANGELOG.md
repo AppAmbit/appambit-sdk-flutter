@@ -1,3 +1,10 @@
+## Version 1.0.1
+
+### AppAmbit SDK
+
+* **[Refactor]** Removed `clearCmsCache` and `clearAllCmsCache` APIs across Android, iOS, and Dart layers. Callers must remove usages; cache management is now handled internally by the native SDK.
+* **[Refactor]** CMS `inList()` / `notInList()` filters now delegate to native instead of performing client-side filtering. `page` / `perPage` are always forwarded to the platform call regardless of filter state.
+
 ## Version 1.0.0
 
 ### AppAmbit Push Notifications SDK

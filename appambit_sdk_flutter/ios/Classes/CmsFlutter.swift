@@ -4,19 +4,6 @@ import AppAmbit
 
 public class CmsFlutter {
 
-    public static func clearCache(args: Any?, result: @escaping FlutterResult) {
-        let argsDict = args as? [String: Any]
-        if let contentType = argsDict?["contentType"] as? String {
-            Cms.clearCache(contentType)
-        }
-        result(nil)
-    }
-
-    public static func clearAllCache(result: @escaping FlutterResult) {
-        Cms.clearAllCache()
-        result(nil)
-    }
-
     private static var pendingRequests: [String: [() -> Void]] = [:]
     private static let pendingLock = NSLock()
 

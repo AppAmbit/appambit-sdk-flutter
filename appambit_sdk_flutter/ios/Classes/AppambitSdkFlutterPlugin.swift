@@ -118,8 +118,6 @@ public class AppAmbitSdkFlutterPlugin: NSObject, FlutterPlugin {
         
     case .cms:
         switch call.method {
-        case "clearCache":          CmsFlutter.clearCache(args: call.arguments, result: result)
-        case "clearAllCache":       CmsFlutter.clearAllCache(result: result)
         case "getList":             CmsFlutter.getList(args: call.arguments, result: result)
         default:
             result(FlutterMethodNotImplemented)

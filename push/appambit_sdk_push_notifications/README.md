@@ -406,7 +406,7 @@ Outside the main `target 'Runner'` block:
 
 ```ruby
 target 'NotificationService' do
-  pod 'AppAmbitPushNotificationsExtension', '~> 1.0.0'
+  pod 'AppAmbitPushNotificationsExtension', '~> 1.0.1'
 end
 ```
 
