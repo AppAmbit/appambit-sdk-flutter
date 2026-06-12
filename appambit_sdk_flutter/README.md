@@ -33,6 +33,7 @@ Lightweight SDK for analytics, events, logging, crashes, and offline support. Si
 * Error logging for quick diagnostics 
 * Crash capture with stack traces and threads
 * Offline support with batching, retry, and queue
+* Cloud SQLite database access with raw SQL, batch/transaction support, and a fluent query builder
 * Create mutliple app profiles for staging and production
 * Small footprint
 
@@ -62,7 +63,7 @@ Add the AppAmbit Flutter SDK to your app’s `pubspec.yml`.
 dependencies:
   flutter:
     sdk: flutter
-  appambit_sdk_flutter: ^1.0.1
+  appambit_sdk_flutter: ^1.1.0
 ```
 
 and then
