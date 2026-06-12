@@ -30,5 +30,6 @@ migrate_working_dir/
 .dart_tool/
 .flutter-plugins-dependencies
 /build/
+**/build/
 /coverage/
 .CLAUDE.md
