@@ -37,28 +37,31 @@ class _DatabaseViewState extends State<DatabaseView> {
   }
 
   List<_Demo> _buildDemos() => [
-        (label: 'Setup → DROP TABLE tasks', action: _runDropTable),
         (label: 'Raw SQL → execute(sql)', action: _runExecute),
         (label: 'Raw SQL → execute(sql, params)', action: _runExecuteParams),
+        (label: 'Schema → DROP TABLE tasks', action: _runDropTable),
         (label: 'Batch → batch()', action: _runBatch),
         (label: 'Batch → batchInTransaction()', action: _runBatchInTransaction),
         (
           label: 'Fluent SELECT → select+where+orderByDesc+limit',
           action: _runFluentSelect
         ),
-        (label: 'Fluent SELECT → where(col,val)', action: _runWhereEquality),
+        (label: 'Fluent SELECT → where(col, val)', action: _runWhereEquality),
         (label: 'Fluent SELECT → whereIn()', action: _runWhereIn),
         (label: 'Fluent SELECT → limit+offset', action: _runOffset),
         (label: 'Fluent SELECT → first()', action: _runFirst),
         (label: 'Fluent SELECT → count()', action: _runCount),
         (label: 'Fluent WRITE → insert()', action: _runInsert),
+        (label: 'Fluent WRITE → insert() high priority', action: _runInsertHigh),
+        (label: 'Fluent WRITE → insert() raw SQL', action: _runInsertRawSQL),
+        (label: 'Fluent WRITE → insert many (batch)', action: _runInsertMany),
         (label: 'Fluent WRITE → update()', action: _runUpdate),
         (label: 'Fluent WRITE → delete()', action: _runDelete),
         (
           label: 'Typed Model → fromMapped(tasks, TaskModel)',
           action: _runTypedModel
         ),
-        (label: 'Preset → tasks (last 10)', action: _runPresetTables),
+        (label: 'Preset → List tables', action: _runPresetTables),
         (
           label: "Preset → SELECT * WHERE priority='high'",
           action: _runPresetHighPriority
@@ -288,6 +291,74 @@ class _DatabaseViewState extends State<DatabaseView> {
     ]);
   }
 
+  Future<void> _runInsertHigh() async {
+    final result = await AppAmbitDb.from('tasks').insert({
+      'title': 'Fix critical bug',
+      'is_completed': 0,
+      'priority': 'high',
+      'due_date': DateTime.now().toUtc().add(const Duration(days: 1)).toString().substring(0, 10),
+    });
+    if (result.hasError) {
+      _showStatus('Error: ${result.error}', isError: true);
+      return;
+    }
+    _showStatus('insert() high priority — rows_written=${result.rowsWritten}');
+    _showRows(['rows_written'], [{'rows_written': result.rowsWritten}]);
+  }
+
+  Future<void> _runInsertRawSQL() async {
+    const sql =
+        'INSERT INTO tasks (title, is_completed, priority, due_date) VALUES (?, ?, ?, ?)';
+    final params = [
+      'Raw SQL task',
+      0,
+      'low',
+      DateTime.now().toUtc().add(const Duration(days: 3)).toString().substring(0, 10),
+    ];
+    _sqlCtrl.text = sql;
+    final result = await AppAmbitDb.execute(sql, params);
+    if (result.hasError) {
+      _showStatus('Error: ${result.error}', isError: true);
+      return;
+    }
+    _showStatus('insert() raw SQL — rows_written=${result.rowsWritten}');
+    _showRows(['rows_written'], [{'rows_written': result.rowsWritten}]);
+  }
+
+  Future<void> _runInsertMany() async {
+    final today = DateTime.now().toUtc().toString().substring(0, 10);
+    final results = await AppAmbitDb.batchInTransaction([
+      DbStatement.of(
+          'INSERT INTO tasks (title, is_completed, priority, due_date) VALUES (?, ?, ?, ?)',
+          ['Task Alpha', 0, 'high', today]),
+      DbStatement.of(
+          'INSERT INTO tasks (title, is_completed, priority, due_date) VALUES (?, ?, ?, ?)',
+          ['Task Beta', 0, 'medium', today]),
+      DbStatement.of(
+          'INSERT INTO tasks (title, is_completed, priority, due_date) VALUES (?, ?, ?, ?)',
+          ['Task Gamma', 0, 'low', today]),
+      DbStatement.of(
+          'INSERT INTO tasks (title, is_completed, priority, due_date) VALUES (?, ?, ?, ?)',
+          ['Task Delta', 0, 'high', today]),
+      DbStatement.of(
+          'INSERT INTO tasks (title, is_completed, priority, due_date) VALUES (?, ?, ?, ?)',
+          ['Task Epsilon', 0, 'medium', today]),
+    ]);
+    final firstError = results.where((r) => r.hasError).firstOrNull;
+    if (firstError != null) {
+      _showStatus('Error: ${firstError.error}', isError: true);
+      return;
+    }
+    final written = results.fold(0, (s, r) => s + r.rowsWritten);
+    _showStatus('insert many (batch) — $written row(s) written in transaction');
+    _showRows(
+      ['statement', 'rows_written'],
+      results.indexed
+          .map((e) => {'statement': e.$1 + 1, 'rows_written': e.$2.rowsWritten})
+          .toList(),
+    );
+  }
+
   Future<void> _runUpdate() async {
     final result = await AppAmbitDb.from('tasks')
         .where('title', 'New task')
@@ -343,14 +414,14 @@ class _DatabaseViewState extends State<DatabaseView> {
   // ── Presets ──────────────────────────────────────────────────────────────────
 
   Future<void> _runPresetTables() async {
-    const q = 'SELECT * FROM tasks ORDER BY id DESC LIMIT 10';
+    const q = "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name";
     _sqlCtrl.text = q;
     final result = await AppAmbitDb.execute(q);
     if (result.hasError) {
       _showStatus('Error: ${result.error}', isError: true);
       return;
     }
-    _showStatus('tasks (last 10) — ${result.rowsRead} row(s)');
+    _showStatus('List tables — ${result.rowsRead} table(s) found');
     _showRows(result.columns, result.toMaps());
   }
 

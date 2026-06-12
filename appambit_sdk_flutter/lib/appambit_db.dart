@@ -100,7 +100,9 @@ class DbQueryBuilder<T> {
       throw ArgumentError('Operator not allowed: $op');
     }
     if (value == null) {
-      final rewritten = upper == '=' ? 'IS NULL' : upper == '!=' || upper == '<>' ? 'IS NOT NULL' : throw ArgumentError("Operator '$op' cannot be used with null");
+      final rewritten = (upper == '=' || upper == 'IS') ? 'IS NULL'
+          : (upper == '!=' || upper == '<>' || upper == 'IS NOT') ? 'IS NOT NULL'
+          : throw ArgumentError("Operator '$op' cannot be used with null");
       _whereClauses.add('${_quoteId(column)} $rewritten');
     } else {
       _whereClauses.add('${_quoteId(column)} $upper ?');
@@ -148,7 +150,7 @@ class DbQueryBuilder<T> {
     final raw = await AppAmbitSdkFlutterPlatform.instance
         .dbExecute(sql, _whereParams.isEmpty ? null : List.of(_whereParams));
     final result = DbResult.fromMap(raw);
-    if (result.hasError) return const [];
+    if (result.hasError) throw StateError(result.error!);
     final maps = result.toMaps();
     if (_fromRow != null) return maps.map(_fromRow).toList();
     return maps as List<T>;
@@ -160,7 +162,7 @@ class DbQueryBuilder<T> {
     final raw = await AppAmbitSdkFlutterPlatform.instance
         .dbExecute(sql, _whereParams.isEmpty ? null : List.of(_whereParams));
     final result = DbResult.fromMap(raw);
-    if (result.hasError) return null;
+    if (result.hasError) throw StateError(result.error!);
     final maps = result.toMaps();
     if (maps.isEmpty) return null;
     if (_fromRow != null) return _fromRow(maps.first);
@@ -174,7 +176,8 @@ class DbQueryBuilder<T> {
     final raw = await AppAmbitSdkFlutterPlatform.instance
         .dbExecute(sb.toString(), _whereParams.isEmpty ? null : List.of(_whereParams));
     final result = DbResult.fromMap(raw);
-    if (result.hasError || result.rows.isEmpty) return 0;
+    if (result.hasError) throw StateError(result.error!);
+    if (result.rows.isEmpty) return 0;
     final val = result.rows.first.firstOrNull;
     if (val == null) return 0;
     if (val is int) return val;
