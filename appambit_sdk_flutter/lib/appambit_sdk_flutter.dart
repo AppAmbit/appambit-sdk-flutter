@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'appambit_sdk_flutter_method_channel.dart' as impl;
 import 'appambit_sdk_flutter_platform_interface.dart';
 export 'appambit_cms.dart';
+export 'appambit_db.dart';
 
 class AppAmbitSdk extends NavigatorObserver {
   static bool _hooksInstalled = false;

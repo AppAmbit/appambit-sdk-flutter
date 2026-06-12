@@ -104,4 +104,16 @@ abstract class AppAmbitSdkFlutterPlatform extends PlatformInterface {
   }) {
     throw UnimplementedError('getCmsList() not implemented');
   }
+
+  /// Database
+  Future<Map<dynamic, dynamic>> dbExecute(String sql, List<Object?>? params) {
+    throw UnimplementedError('dbExecute() not implemented');
+  }
+
+  Future<List<Map<dynamic, dynamic>>> dbBatch(
+    List<Map<String, dynamic>> statements, {
+    bool inTransaction = false,
+  }) {
+    throw UnimplementedError('dbBatch() not implemented');
+  }
 }

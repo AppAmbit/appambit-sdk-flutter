@@ -141,6 +141,34 @@ class MethodChannelAppAmbitSdkFlutter extends AppAmbitSdkFlutterPlatform {
   // Cms
   final MethodChannel _cms = const MethodChannel('com.appambit/cms');
 
+  // Database
+  final MethodChannel _db = const MethodChannel('com.appambit/db');
+
+  @override
+  Future<Map<dynamic, dynamic>> dbExecute(
+      String sql, List<Object?>? params) async {
+    final res = await _db.invokeMethod<Map<dynamic, dynamic>>('execute', {
+      'sql': sql,
+      if (params != null && params.isNotEmpty) 'params': params,
+    });
+    return res ?? {};
+  }
+
+  @override
+  Future<List<Map<dynamic, dynamic>>> dbBatch(
+    List<Map<String, dynamic>> statements, {
+    bool inTransaction = false,
+  }) async {
+    final res = await _db.invokeMethod<List<dynamic>>('batch', {
+      'statements': statements,
+      'inTransaction': inTransaction,
+    });
+    if (res == null) return [];
+    return res
+        .map((e) => Map<dynamic, dynamic>.from(e as Map))
+        .toList();
+  }
+
   @override
   Future<List<Map<String, dynamic>>> getCmsList({
     required String contentType,
