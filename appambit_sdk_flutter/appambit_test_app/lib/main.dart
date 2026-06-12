@@ -1,5 +1,6 @@
 import 'package:appambit_sdk_flutter_example/analytics_view.dart';
 import 'package:appambit_sdk_flutter_example/crashes_view.dart';
+import 'package:appambit_sdk_flutter_example/database_view.dart';
 import 'package:appambit_sdk_flutter_example/remote_config_view.dart';
 import 'package:appambit_sdk_flutter_example/cms_view.dart';
 import 'package:appambit_sdk_flutter_example/second_screen.dart';
@@ -81,6 +82,7 @@ class _MainBottomNavPageState extends State<MainBottomNavPage> {
     const AnalyticsView(),
     RemoteConfigView(isActive: _index == 2),
     const CmsView(),
+    const DatabaseView(),
   ];
 
   @override
@@ -106,6 +108,7 @@ class _MainBottomNavPageState extends State<MainBottomNavPage> {
             label: 'Remote Config',
           ),
           BottomNavigationBarItem(icon: Icon(Icons.article), label: 'CMS'),
+          BottomNavigationBarItem(icon: Icon(Icons.storage), label: 'Database'),
         ],
       ),
     );
@@ -121,6 +124,8 @@ class _MainBottomNavPageState extends State<MainBottomNavPage> {
         return 'Remote Config';
       case 3:
         return 'CMS Native';
+      case 4:
+        return 'Database';
       default:
         return 'AppAmbit SDK';
     }

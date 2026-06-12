@@ -1,15 +1,15 @@
 PODS:
   - appambit_sdk_flutter (0.0.1):
-    - AppAmbitSdk (= 1.0.2)
+    - AppAmbitSdk (= 1.1.0)
     - Flutter
   - appambit_sdk_push_notifications (0.0.1):
-    - AppAmbitPushNotifications (= 1.0.2)
-    - AppAmbitSdk (= 1.0.2)
+    - AppAmbitPushNotifications (= 1.1.0)
+    - AppAmbitSdk (= 1.1.0)
     - Flutter
-  - AppAmbitPushNotifications (1.0.2):
+  - AppAmbitPushNotifications (1.1.0):
     - AppAmbitSdk
-  - AppAmbitPushNotificationsExtension (1.0.2)
-  - AppAmbitSdk (1.0.2)
+  - AppAmbitPushNotificationsExtension (1.1.0)
+  - AppAmbitSdk (1.1.0)
   - Flutter (1.0.0)
   - integration_test (0.0.1):
     - Flutter
@@ -17,7 +17,7 @@ PODS:
 DEPENDENCIES:
   - appambit_sdk_flutter (from `.symlinks/plugins/appambit_sdk_flutter/ios`)
   - appambit_sdk_push_notifications (from `.symlinks/plugins/appambit_sdk_push_notifications/ios`)
-  - AppAmbitPushNotificationsExtension (= 1.0.2)
+  - AppAmbitPushNotificationsExtension (= 1.1.0)
   - Flutter (from `Flutter`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
 
@@ -38,14 +38,14 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/integration_test/ios"
 
 SPEC CHECKSUMS:
-  appambit_sdk_flutter: 822d6bbe88933061ec28607b179225eee7b2c888
-  appambit_sdk_push_notifications: 8a8a66979aca649635e475931f8668d7e2a7ceac
-  AppAmbitPushNotifications: a0aa26cb0f99204675630bce82df6b8b6ff3e50c
-  AppAmbitPushNotificationsExtension: 9b28acd46bf82e1735dc530b2902f55955c12134
-  AppAmbitSdk: 7970c20fbcafdff4fde33ee8050f3a29e9f03ff5
+  appambit_sdk_flutter: b82e6d867dffcbb9b78abf2a572373823b7b0918
+  appambit_sdk_push_notifications: 8efa117f11d9ebaf6c56d7a5b6ef8f66bf4fbb2a
+  AppAmbitPushNotifications: ca48024ec96a42a97fea757a8e97e35f521241b8
+  AppAmbitPushNotificationsExtension: daeda746fd99844afaf99c597e5873c922a185c0
+  AppAmbitSdk: 3c353462b775e608dc6b7aa918feb2efd789188b
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
 
-PODFILE CHECKSUM: 9bca72f3727ef6ff02c0a120a30b358481ffcae9
+PODFILE CHECKSUM: 118801c294a480a391f1a711772fed5e8939f4a4
 
 COCOAPODS: 1.16.2

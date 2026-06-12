@@ -10,9 +10,9 @@ public class AppAmbitSdkFlutterPlugin: NSObject, FlutterPlugin {
   private static let crashesChannelName   = "com.appambit/crashes"
   private static let remoteConfigChannelName = "com.appambit/remoteconfig"
   private static let cmsChannelName          = "com.appambit/cms"
+  private static let dbChannelName           = "com.appambit/db"
 
-  
-  private enum Scope { case core, analytics, crashes, remoteConfig, cms }
+  private enum Scope { case core, analytics, crashes, remoteConfig, cms, database }
   private let scope: Scope
 
   private init(scope: Scope) {
@@ -44,6 +44,11 @@ public class AppAmbitSdkFlutterPlugin: NSObject, FlutterPlugin {
     let cmsChannel = FlutterMethodChannel(name: cmsChannelName, binaryMessenger: registrar.messenger())
     let cmsInstance = AppAmbitSdkFlutterPlugin(scope: .cms)
     registrar.addMethodCallDelegate(cmsInstance, channel: cmsChannel)
+
+    // Database
+    let dbChannel = FlutterMethodChannel(name: dbChannelName, binaryMessenger: registrar.messenger())
+    let dbInstance = AppAmbitSdkFlutterPlugin(scope: .database)
+    registrar.addMethodCallDelegate(dbInstance, channel: dbChannel)
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -119,6 +124,14 @@ public class AppAmbitSdkFlutterPlugin: NSObject, FlutterPlugin {
     case .cms:
         switch call.method {
         case "getList":             CmsFlutter.getList(args: call.arguments, result: result)
+        default:
+            result(FlutterMethodNotImplemented)
+        }
+
+    case .database:
+        switch call.method {
+        case "execute":             DatabaseFlutter.execute(args: call.arguments, result: result)
+        case "batch":               DatabaseFlutter.batch(args: call.arguments, result: result)
         default:
             result(FlutterMethodNotImplemented)
         }
