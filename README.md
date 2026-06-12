@@ -33,6 +33,7 @@ Lightweight SDK for analytics, events, logging, crashes, and offline support. Si
 * Error logging for quick diagnostics 
 * Crash capture with stack traces and threads
 * Offline support with batching, retry, and queue
+* Cloud SQLite database with raw SQL and query builder
 * Create mutliple app profiles for staging and production
 * Small footprint
 
@@ -62,7 +63,7 @@ Add the AppAmbit Flutter SDK to your app’s `pubspec.yml`.
 dependencies:
   flutter:
     sdk: flutter
-  appambit_sdk_flutter: ^1.0.1
+  appambit_sdk_flutter: ^1.1.0
 ```
 
 and then
@@ -133,6 +134,20 @@ try {
 ```
 
 * **Crash Reporting**: uncaught crashes are automatically captured and uploaded on next launch
+
+```dart
+// Insert a row
+await AppAmbitDb.from('tasks').insert({'title': 'Buy milk', 'done': 0});
+
+// Query rows with the fluent query builder
+final tasks = await AppAmbitDb.from('tasks')
+    .where('done', 0)
+    .orderByDesc('id')
+    .limit(10)
+    .get();
+```
+
+* **Database**: Cloud SQLite access with raw SQL, batch/transaction support, and a fluent query builder.
 
 ---
 
