@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  FLUTTER_VERSION: '3.35.4'
+  FLUTTER_VERSION: '3.44.0'
   FLUTTER_PACKAGE_PATH: 'appambit_sdk_flutter'
   PUSH_PACKAGE_PATH: 'push/appambit_sdk_push_notifications'
 
@@ -24,16 +24,13 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
-      
-      - uses: dart-lang/setup-dart@v1
-      - name: Install dart dependencies
-        run: dart pub get
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           flutter-version: '${{ env.FLUTTER_VERSION }}'
+          cache: false
 
       - name: Install dependencies
         working-directory: ${{ env.FLUTTER_PACKAGE_PATH }}
@@ -51,13 +48,11 @@ jobs:
           echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
           echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
           echo "new_tag=v$VERSION_NAME" >> $GITHUB_OUTPUT
-
           if [[ "$VERSION_NAME" == *"-"* ]]; then
             echo "is_prerelease=true" >> $GITHUB_OUTPUT
           else
             echo "is_prerelease=false" >> $GITHUB_OUTPUT
           fi
-
       - name: Extract latest changelog entry
         id: changelog
         run: |
@@ -66,18 +61,16 @@ jobs:
           echo "changelog<<EOF" >> $GITHUB_OUTPUT
           echo "$LATEST_CHANGELOG" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-
       - name: Show changelog
         run: |
           echo "Last changes:"
           echo "${{ steps.changelog.outputs.changelog }}"
-
       - name: Check Publish Dry Run
         working-directory: ${{ env.FLUTTER_PACKAGE_PATH }}
         run: flutter pub publish --dry-run
 
       - name: Create GitHub Release
-        if: ${{ github.ref_name == 'main' }}
+        # if: ${{ github.ref_name == 'main' }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.new_tag }}
@@ -86,7 +79,7 @@ jobs:
           prerelease: ${{ steps.version.outputs.is_prerelease }}
       
       - name: Publish Package
-        if: steps.version.outputs.is_prerelease == 'false' && github.ref_name == 'main'
+        # if: steps.version.outputs.is_prerelease == 'false'
         working-directory: ${{ env.FLUTTER_PACKAGE_PATH }}
         run: flutter pub publish --force
 
@@ -99,6 +92,6 @@ jobs:
         run: flutter pub publish --dry-run
       
       - name: Publish Package (Push SDK)
-        if: steps.version.outputs.is_prerelease == 'false' && github.ref_name == 'main'
+        # if: steps.version.outputs.is_prerelease == 'false' && github.ref_name == 'main'
         working-directory: ${{ env.PUSH_PACKAGE_PATH }}
         run: flutter pub publish --force
