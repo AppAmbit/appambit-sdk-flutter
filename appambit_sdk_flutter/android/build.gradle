@@ -21,6 +21,12 @@ rootProject.allprojects {
     }
 }
 
+repositories {
+    maven {
+        url = uri("$projectDir/local-maven")
+    }
+}
+
 apply plugin: "com.android.library"
 apply plugin: "kotlin-android"
 
@@ -63,5 +69,6 @@ android {
 dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("org.mockito:mockito-core:5.0.0")
-    implementation("com.appambit:appambit:1.1.0")
+    // Temporary local Maven wrapper around the Cloud Code AAR.
+    implementation("com.appambit:appambit:1.1.0-cloudcode-local")
 }

@@ -3,8 +3,10 @@ import 'package:appambit_sdk_flutter_example/crashes_view.dart';
 import 'package:appambit_sdk_flutter_example/database_view.dart';
 import 'package:appambit_sdk_flutter_example/remote_config_view.dart';
 import 'package:appambit_sdk_flutter_example/cms_view.dart';
+import 'package:appambit_sdk_flutter_example/cloud_code_view.dart';
 import 'package:appambit_sdk_flutter_example/second_screen.dart';
 import 'package:appambit_sdk_push_notifications/appambit_sdk_push_notifications.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:appambit_sdk_flutter/appambit_sdk_flutter.dart';
 
@@ -16,13 +18,13 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   //Uncomment the line for automatic session management
   //AppAmbitSdk.enableManualSession();
-  AppAmbitSdk.enableConfig();
-  AppAmbitSdk.start(appKey: '<YOUR-APPKEY>');
-  PushNotificationsSdk.start();
+  await AppAmbitSdk.start(appKey: "<YOUR-APPKEY>");
+  await AppAmbitSdk.enableConfig();
+  await PushNotificationsSdk.start();
 
   PushNotificationsSdk.setForegroundListener((data) {
     debugPrint('[Push] Foreground: ${data.title}');
-  }); 
+  });
 
   PushNotificationsSdk.setOpenedListener((data) {
     // Defer until the next frame so the Navigator is mounted, especially on
@@ -40,9 +42,9 @@ void main() async {
   // Android-only: runs in a background isolate when a push arrives with the
   // app in background or killed. The handler must be a top-level function
   // marked with @pragma('vm:entry-point'); see [pushBackgroundHandler] below.
-  await PushNotificationsSdk.Android.setBackgroundHandler(pushBackgroundHandler);
-
-
+  await PushNotificationsSdk.Android.setBackgroundHandler(
+    pushBackgroundHandler,
+  );
 
   runApp(const MyApp());
 }
@@ -83,6 +85,7 @@ class _MainBottomNavPageState extends State<MainBottomNavPage> {
     RemoteConfigView(isActive: _index == 2),
     const CmsView(),
     const DatabaseView(),
+    const CloudCodeView(),
   ];
 
   @override
@@ -109,6 +112,7 @@ class _MainBottomNavPageState extends State<MainBottomNavPage> {
           ),
           BottomNavigationBarItem(icon: Icon(Icons.article), label: 'CMS'),
           BottomNavigationBarItem(icon: Icon(Icons.storage), label: 'Database'),
+          BottomNavigationBarItem(icon: Icon(Icons.cloud), label: 'Cloud Code'),
         ],
       ),
     );
@@ -126,6 +130,8 @@ class _MainBottomNavPageState extends State<MainBottomNavPage> {
         return 'CMS Native';
       case 4:
         return 'Database';
+      case 5:
+        return 'Cloud Code';
       default:
         return 'AppAmbit SDK';
     }

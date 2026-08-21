@@ -16,6 +16,7 @@ Lightweight SDK for analytics, events, logging, crashes, and offline support. Si
 * [Install](#install)
 * [Quickstart](#quickstart)
 * [Usage](#usage)
+* [Cloud Code](#cloud-code)
 * [Release Distribution](#release-distribution)
 * [Privacy and Data](#privacy-and-data)
 * [Troubleshooting](#troubleshooting)
@@ -34,6 +35,7 @@ Lightweight SDK for analytics, events, logging, crashes, and offline support. Si
 * Crash capture with stack traces and threads
 * Offline support with batching, retry, and queue
 * Cloud SQLite database access with raw SQL, batch/transaction support, and a fluent query builder
+* Cloud Code HTTP function calls with dynamic and typed responses
 * Create mutliple app profiles for staging and production
 * Small footprint
 
@@ -88,7 +90,7 @@ Initialize the SDK with your **API key**.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  AppAmbitSdk.start(appKey: '<YOUR-APPKEY>');
+   await AppAmbitSdk.start(appKey: '<YOUR-APPKEY>');
 
   runApp(const MyApp());
 }
@@ -158,6 +160,50 @@ bool variable = await AppAmbitSdk.getBoolean("<key_name>");
 ```
 
 * **Remote Config**: fetch and apply remote configuration values asynchronously using type-safe methods (`getString`, `getBoolean`, `getLong`, `getDouble`).
+---
+
+## Cloud Code
+
+Cloud Code calls use the native SDK transport and authentication. The Dart
+API does not manage tokens, URLs, retries, or timeouts itself.
+
+```dart
+final request = CloudCode.call(
+  'cloud-demo-http-inspector',
+  method: CloudCodeHttpMethod.post,
+  query: {'source': 'flutter'},
+  body: {'message': 'hello', 'count': 2},
+  headers: {'X-Sample-Client': 'flutter'},
+);
+
+try {
+  final response = await request.future;
+  debugPrint('HTTP ${response.statusCode}: ${response.data}');
+} on CloudCodeError catch (error) {
+  debugPrint('${error.code}: ${error.message}');
+}
+```
+
+Requests can be cancelled while they are pending:
+
+```dart
+final request = CloudCode.call('cloud-demo-timeout-10s');
+await request.cancel();
+```
+
+For typed responses, provide a converter. `CloudCodeRequest<T>` exposes
+`future` and `cancel()`; it intentionally does not expose `isCancelled`.
+
+```dart
+final result = await CloudCode.callTyped<int>(
+  'cloud-demo-json-values',
+  fromJson: (value) => (value as Map)['number'] as int,
+).future;
+```
+
+The example app includes the complete Database, CMS, Push, and HTTP Cloud Code
+catalog used by the native Android and iOS samples.
+
 ---
 
 ## Release Distribution

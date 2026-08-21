@@ -155,6 +155,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
   Widget build(BuildContext context) {
     return Scrollbar(
       child: SingleChildScrollView(
+        primary: false,
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

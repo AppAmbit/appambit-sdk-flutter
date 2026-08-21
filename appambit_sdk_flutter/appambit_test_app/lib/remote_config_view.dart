@@ -59,6 +59,7 @@ class _RemoteConfigViewState extends State<RemoteConfigView> {
     }
 
     return SingleChildScrollView(
+      primary: false,
       child: Container(
         color: const Color.fromARGB(255, 255, 255, 255),
         padding: const EdgeInsets.only(left: 24, right: 24, top: 32, bottom: 24),

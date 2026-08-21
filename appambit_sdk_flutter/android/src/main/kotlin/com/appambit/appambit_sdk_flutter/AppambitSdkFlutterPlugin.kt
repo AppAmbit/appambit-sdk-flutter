@@ -23,6 +23,7 @@ class AppAmbitSdkFlutterPlugin :
     private lateinit var remoteConfig: RemoteConfigFlutter
     private lateinit var cms: CmsFlutter
     private lateinit var database: DatabaseFlutter
+    private lateinit var cloudCode: CloudCodeFlutter
     private lateinit var context: Context
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
@@ -45,6 +46,9 @@ class AppAmbitSdkFlutterPlugin :
 
         database = DatabaseFlutter()
         database.attach(flutterPluginBinding, context)
+
+        cloudCode = CloudCodeFlutter()
+        cloudCode.attach(flutterPluginBinding)
     }
 
     override fun onMethodCall(
@@ -83,5 +87,6 @@ class AppAmbitSdkFlutterPlugin :
         remoteConfig.detach()
         cms.detach()
         database.detach()
+        cloudCode.detach()
     }
 }
