@@ -1,3 +1,9 @@
+## Version 1.2.0
+
+### AppAmbit SDK
+
+* **[Feature]** Added Cloud Code implementation for Flutter.
+
 ## Version 1.1.0
 
 ### AppAmbit SDK

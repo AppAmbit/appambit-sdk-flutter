@@ -65,7 +65,7 @@ Add the AppAmbit Flutter SDK to your app’s `pubspec.yml`.
 dependencies:
   flutter:
     sdk: flutter
-  appambit_sdk_flutter: ^1.1.0
+  appambit_sdk_flutter: ^1.2.0
 ```
 
 and then
@@ -164,16 +164,23 @@ bool variable = await AppAmbitSdk.getBoolean("<key_name>");
 
 ## Cloud Code
 
-Cloud Code calls use the native SDK transport and authentication. The Dart
-API does not manage tokens, URLs, retries, or timeouts itself.
+Cloud Code lets your app invoke authenticated HTTP functions hosted by AppAmbit.
+Initialize the SDK as usual; Cloud Code uses the same consumer and Bearer token
+as the rest of the SDK.
+
+Before calling a function, configure an active Cloud Function with an enabled
+HTTP trigger and a slug in the AppAmbit Dashboard. The slug is the first
+argument passed to `CloudCode.call`.
 
 ```dart
+import 'package:appambit_sdk_flutter/appambit_sdk_flutter.dart';
+
 final request = CloudCode.call(
-  'cloud-demo-http-inspector',
+  'hello',
   method: CloudCodeHttpMethod.post,
   query: {'source': 'flutter'},
-  body: {'message': 'hello', 'count': 2},
-  headers: {'X-Sample-Client': 'flutter'},
+  body: {'name': 'Ada'},
+  headers: {'X-Client': 'flutter'},
 );
 
 try {
@@ -184,25 +191,37 @@ try {
 }
 ```
 
-Requests can be cancelled while they are pending:
+Requests can be cancelled while they are pending. The request object also
+preserves the response status, headers, duration, and request ID returned by
+the native SDK:
 
 ```dart
-final request = CloudCode.call('cloud-demo-timeout-10s');
+final request = CloudCode.call('hello');
 await request.cancel();
 ```
 
-For typed responses, provide a converter. `CloudCodeRequest<T>` exposes
-`future` and `cancel()`; it intentionally does not expose `isCancelled`.
+For typed responses, provide a converter matching the JSON returned by the
+function. This function is expected to return `{"number": 42}`:
 
 ```dart
+import 'package:appambit_sdk_flutter/appambit_sdk_flutter.dart';
+
 final result = await CloudCode.callTyped<int>(
-  'cloud-demo-json-values',
+  'hello',
   fromJson: (value) => (value as Map)['number'] as int,
 ).future;
 ```
 
-The example app includes the complete Database, CMS, Push, and HTTP Cloud Code
-catalog used by the native Android and iOS samples.
+Cloud Code calls are request/response operations and are not queued for offline
+upload. The SDK forwards authentication, rejects reserved headers, and applies
+the native 60-second timeout. It does not manage tokens, URLs, retries, or
+timeouts in Dart.
+
+See the [Cloud Code mobile guide](https://docs.appambit.com/sdk-guides/cloud-code/)
+for function setup, HTTP triggers, typed and dynamic responses, errors, request
+IDs, cancellation, timeouts, and backend examples. The example app includes
+the complete Database, CMS, Push, and HTTP Cloud Code catalog used by the
+native Android and iOS samples.
 
 ---
 
