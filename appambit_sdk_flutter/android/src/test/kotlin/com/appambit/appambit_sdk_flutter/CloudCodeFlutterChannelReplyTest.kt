@@ -58,7 +58,7 @@ internal class CloudCodeFlutterChannelReplyTest {
         channel.setMethodCallHandler { _, result -> capturedResult = result }
 
         val encodedCall = StandardMethodCodec.INSTANCE.encodeMethodCall(
-            MethodCall("call", mapOf("requestId" to "r1", "function" to "demo")),
+            MethodCall("call", mapOf("correlationId" to "r1", "function" to "demo")),
         )
         // encodeMethodCall returns the buffer positioned at its write cursor;
         // decode expects it positioned at 0, exactly like the engine's own

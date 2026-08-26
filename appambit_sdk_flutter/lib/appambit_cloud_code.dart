@@ -216,7 +216,12 @@ class CloudCode {
   }) {
     impl.registerMethodChannelImplementation();
 
-    final requestId = _nextRequestId();
+    // Internal only - never returned to callers. Needed because MethodChannel
+    // is a stateless RPC: unlike the native SDKs (which cancel by holding a
+    // token/Task object reference), Dart has to hand the native bridge a
+    // string key it can use to find this call again on cancel(). Distinct
+    // from CloudCodeResponse.requestId, which is the server's request id.
+    final correlationId = _nextCorrelationId();
     final snapshot = _snapshotRequest(query, body, headers);
     if (snapshot.error != null) {
       return CloudCodeRequest._create(
@@ -226,10 +231,11 @@ class CloudCode {
     }
 
     final platform = AppAmbitSdkFlutterPlatform.instance;
-    Future<void> cancelNative() => platform.cloudCodeCancel(requestId);
+    Future<void> cancelNative() =>
+        platform.cloudCodeCancel(correlationId);
     var operation = _invoke(
       platform.cloudCodeCall(
-        requestId: requestId,
+        correlationId: correlationId,
         function: function,
         method: method.wireName,
         query: snapshot.query,
@@ -247,7 +253,7 @@ class CloudCode {
             code: CloudCodeErrorCode.timedOut,
             message: 'Cloud Code request timed out after $timeout.',
             function: function,
-            requestId: requestId,
+            requestId: correlationId,
           );
         },
       );
@@ -318,7 +324,7 @@ class CloudCode {
     }
   }
 
-  static String _nextRequestId() {
+  static String _nextCorrelationId() {
     _requestSequence = (_requestSequence + 1) & 0x7fffffff;
     return 'flutter-${DateTime.now().microsecondsSinceEpoch}-$_requestSequence';
   }

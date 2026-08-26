@@ -27,8 +27,8 @@ final class CloudCodeFlutter {
 
     static func call(args: Any?, result: @escaping FlutterResult) {
         guard let args = args as? [String: Any],
-              let requestId = args["requestId"] as? String,
-              !requestId.isEmpty,
+              let correlationId = args["correlationId"] as? String,
+              !correlationId.isEmpty,
               let function = args["function"] as? String else {
             result(FlutterError(code: "BAD_ARGS", message: "Missing Cloud Code arguments", details: nil))
             return
@@ -45,7 +45,7 @@ final class CloudCodeFlutter {
 
         let pending = PendingRequest(result: result)
         lock.lock()
-        requests[requestId] = pending
+        requests[correlationId] = pending
         lock.unlock()
 
         let token = CloudCode.call(
@@ -55,7 +55,7 @@ final class CloudCodeFlutter {
             body: body,
             headers: headers
         ) { response, error in
-            guard let pending = remove(requestId) else { return }
+            guard let pending = remove(correlationId) else { return }
 
             if let error {
                 pending.result(FlutterError(
@@ -90,13 +90,13 @@ final class CloudCodeFlutter {
 
     static func cancel(args: Any?, result: @escaping FlutterResult) {
         guard let args = args as? [String: Any],
-              let requestId = args["requestId"] as? String,
-              !requestId.isEmpty else {
-            result(FlutterError(code: "BAD_ARGS", message: "Missing 'requestId'", details: nil))
+              let correlationId = args["correlationId"] as? String,
+              !correlationId.isEmpty else {
+            result(FlutterError(code: "BAD_ARGS", message: "Missing 'correlationId'", details: nil))
             return
         }
 
-        if let pending = remove(requestId) {
+        if let pending = remove(correlationId) {
             pending.token?.cancel()
             pending.result(FlutterError(
                 code: "CLOUD_CODE_ERROR",
@@ -137,10 +137,10 @@ final class CloudCodeFlutter {
         }
     }
 
-    private static func remove(_ requestId: String) -> PendingRequest? {
+    private static func remove(_ correlationId: String) -> PendingRequest? {
         lock.lock()
         defer { lock.unlock() }
-        return requests.removeValue(forKey: requestId)
+        return requests.removeValue(forKey: correlationId)
     }
 
     private static func errorDetails(_ error: Error) -> [String: Any] {

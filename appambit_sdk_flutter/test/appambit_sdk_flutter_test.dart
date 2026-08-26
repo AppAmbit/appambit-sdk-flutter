@@ -11,7 +11,7 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 class MockAppAmbitSdkFlutterPlatform extends AppAmbitSdkFlutterPlatform
     with MockPlatformInterfaceMixin {
   Map<String, dynamic>? lastCall;
-  String? cancelledRequestId;
+  String? cancelledCorrelationId;
   Future<Map<dynamic, dynamic>> Function()? callHandler;
   final List<Map<String, dynamic>?> errorPayloads = [];
   final List<Map<String, dynamic>> messagePayloads = [];
@@ -31,7 +31,7 @@ class MockAppAmbitSdkFlutterPlatform extends AppAmbitSdkFlutterPlatform
 
   @override
   Future<Map<dynamic, dynamic>> cloudCodeCall({
-    required String requestId,
+    required String correlationId,
     required String function,
     required String method,
     Map<String, String>? query,
@@ -39,7 +39,7 @@ class MockAppAmbitSdkFlutterPlatform extends AppAmbitSdkFlutterPlatform
     Map<String, String>? headers,
   }) {
     lastCall = {
-      'requestId': requestId,
+      'correlationId': correlationId,
       'function': function,
       'method': method,
       'query': query,
@@ -50,8 +50,8 @@ class MockAppAmbitSdkFlutterPlatform extends AppAmbitSdkFlutterPlatform
   }
 
   @override
-  Future<void> cloudCodeCancel(String requestId) async {
-    cancelledRequestId = requestId;
+  Future<void> cloudCodeCancel(String correlationId) async {
+    cancelledCorrelationId = correlationId;
   }
 }
 
@@ -207,7 +207,7 @@ void main() {
       platform.callHandler = () async {
         throw PlatformException(
           code: 'BAD_ARGS',
-          message: "Missing 'requestId'",
+          message: "Missing 'correlationId'",
         );
       };
 
@@ -282,7 +282,7 @@ void main() {
       ),
     );
     await Future<void>.delayed(Duration.zero);
-    expect(platform.cancelledRequestId, isNotNull);
+    expect(platform.cancelledCorrelationId, isNotNull);
   });
 
   test('cancels a pending request through the platform bridge', () async {
@@ -303,7 +303,7 @@ void main() {
 
     await request.cancel();
     await resultFuture;
-    expect(platform.cancelledRequestId, isNotNull);
+    expect(platform.cancelledCorrelationId, isNotNull);
   });
 
   test('does not throttle explicit error messages', () async {

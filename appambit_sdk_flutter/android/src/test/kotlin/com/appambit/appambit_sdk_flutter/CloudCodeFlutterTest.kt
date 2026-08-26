@@ -59,25 +59,25 @@ internal class CloudCodeFlutterTest {
     }
 
     @Test
-    fun call_missingRequestId_repliesBadArgsWithoutTouchingNativeSdk() {
+    fun call_missingCorrelationId_repliesBadArgsWithoutTouchingNativeSdk() {
         val bridge = CloudCodeFlutter()
         val call = MethodCall("call", mapOf("function" to "demo"))
         val mockResult: MethodChannel.Result = Mockito.mock(MethodChannel.Result::class.java)
 
         bridge.handleForTest(call, mockResult)
 
-        Mockito.verify(mockResult).error("BAD_ARGS", "Missing 'requestId'", null)
+        Mockito.verify(mockResult).error("BAD_ARGS", "Missing 'correlationId'", null)
     }
 
     @Test
-    fun cancel_missingRequestId_repliesBadArgs() {
+    fun cancel_missingCorrelationId_repliesBadArgs() {
         val bridge = CloudCodeFlutter()
         val call = MethodCall("cancel", emptyMap<String, Any>())
         val mockResult: MethodChannel.Result = Mockito.mock(MethodChannel.Result::class.java)
 
         bridge.handleForTest(call, mockResult)
 
-        Mockito.verify(mockResult).error("BAD_ARGS", "Missing 'requestId'", null)
+        Mockito.verify(mockResult).error("BAD_ARGS", "Missing 'correlationId'", null)
     }
 }
 

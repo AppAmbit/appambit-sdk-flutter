@@ -119,7 +119,7 @@ abstract class AppAmbitSdkFlutterPlatform extends PlatformInterface {
 
   /// Cloud Code
   Future<Map<dynamic, dynamic>> cloudCodeCall({
-    required String requestId,
+    required String correlationId,
     required String function,
     required String method,
     Map<String, String>? query,
@@ -129,7 +129,7 @@ abstract class AppAmbitSdkFlutterPlatform extends PlatformInterface {
     throw UnimplementedError('cloudCodeCall() not implemented');
   }
 
-  Future<void> cloudCodeCancel(String requestId) {
+  Future<void> cloudCodeCancel(String correlationId) {
     throw UnimplementedError('cloudCodeCancel() not implemented');
   }
 }

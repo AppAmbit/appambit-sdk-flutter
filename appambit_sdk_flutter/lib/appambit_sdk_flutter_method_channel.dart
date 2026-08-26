@@ -199,7 +199,7 @@ class MethodChannelAppAmbitSdkFlutter extends AppAmbitSdkFlutterPlatform {
 
   @override
   Future<Map<dynamic, dynamic>> cloudCodeCall({
-    required String requestId,
+    required String correlationId,
     required String function,
     required String method,
     Map<String, String>? query,
@@ -208,7 +208,7 @@ class MethodChannelAppAmbitSdkFlutter extends AppAmbitSdkFlutterPlatform {
   }) async {
     final response = await _cloudCode
         .invokeMethod<Map<dynamic, dynamic>>('call', <String, dynamic>{
-          'requestId': requestId,
+          'correlationId': correlationId,
           'function': function,
           'method': method,
           'query': query,
@@ -219,8 +219,10 @@ class MethodChannelAppAmbitSdkFlutter extends AppAmbitSdkFlutterPlatform {
   }
 
   @override
-  Future<void> cloudCodeCancel(String requestId) {
-    return _cloudCode.invokeMethod<void>('cancel', {'requestId': requestId});
+  Future<void> cloudCodeCancel(String correlationId) {
+    return _cloudCode.invokeMethod<void>('cancel', {
+      'correlationId': correlationId,
+    });
   }
 }
 

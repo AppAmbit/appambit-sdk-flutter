@@ -28,7 +28,7 @@ class CloudCodeFlutter {
         if (::channel.isInitialized) {
             channel.setMethodCallHandler(null)
         }
-        requests.keys.toList().forEach { requestId -> cancelPending(requestId) }
+        requests.keys.toList().forEach { correlationId -> cancelPending(correlationId) }
         requests.clear()
     }
 
@@ -42,9 +42,9 @@ class CloudCodeFlutter {
 
     private fun call(call: MethodCall, result: MethodChannel.Result) {
         val args = call.arguments as? Map<*, *> ?: emptyMap<Any?, Any?>()
-        val requestId = args["requestId"] as? String
-        if (requestId.isNullOrEmpty()) {
-            result.error("BAD_ARGS", "Missing 'requestId'", null)
+        val correlationId = args["correlationId"] as? String
+        if (correlationId.isNullOrEmpty()) {
+            result.error("BAD_ARGS", "Missing 'correlationId'", null)
             return
         }
 
@@ -58,12 +58,12 @@ class CloudCodeFlutter {
         val headers = args["headers"] as? Map<String, String>
 
         val request = CloudCode.call(function, method, query, body, headers)
-        requests[requestId] = PendingRequest(request, result)
+        requests[correlationId] = PendingRequest(request, result)
         request.then { response ->
-            requests.remove(requestId)?.result?.success(responseToMap(response))
+            requests.remove(correlationId)?.result?.success(responseToMap(response))
         }
         request.onError { error ->
-            requests.remove(requestId)?.result?.error(
+            requests.remove(correlationId)?.result?.error(
                 "CLOUD_CODE_ERROR",
                 error.message ?: "Cloud Code request failed",
                 errorToMap(error),
@@ -73,18 +73,18 @@ class CloudCodeFlutter {
 
     private fun cancel(call: MethodCall, result: MethodChannel.Result) {
         val args = call.arguments as? Map<*, *> ?: emptyMap<Any?, Any?>()
-        val requestId = args["requestId"] as? String
-        if (requestId.isNullOrEmpty()) {
-            result.error("BAD_ARGS", "Missing 'requestId'", null)
+        val correlationId = args["correlationId"] as? String
+        if (correlationId.isNullOrEmpty()) {
+            result.error("BAD_ARGS", "Missing 'correlationId'", null)
             return
         }
 
-        cancelPending(requestId)
+        cancelPending(correlationId)
         result.success(null)
     }
 
-    private fun cancelPending(requestId: String) {
-        val pending = requests.remove(requestId) ?: return
+    private fun cancelPending(correlationId: String) {
+        val pending = requests.remove(correlationId) ?: return
         pending.request.cancel()
         pending.result.error("CLOUD_CODE_ERROR", "Cloud Code request was cancelled", mapOf("code" to "CANCELLED"))
     }
