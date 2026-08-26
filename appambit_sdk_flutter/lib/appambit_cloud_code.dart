@@ -32,12 +32,15 @@ enum CloudCodeErrorCode {
   transport,
   decoding,
   http,
+  /// The native bridge rejected the platform-channel call itself (e.g. a
+  /// missing `requestId`) before ever reaching the native Cloud Code SDK.
+  badArgs,
   unknown,
 }
 
 class CloudCodeResponse {
   final Object? data;
-  final int statusCode;
+  final int? statusCode;
   final String? requestId;
   final Map<String, String> headers;
 
@@ -51,7 +54,7 @@ class CloudCodeResponse {
 
 class CloudCodeResult<T> {
   final T? data;
-  final int statusCode;
+  final int? statusCode;
   final String? requestId;
   final Map<String, String> headers;
 
@@ -157,6 +160,17 @@ class CloudCodeRequest<T> {
       cancelNative,
     );
 
+    // `request.future` (== completer.future) is not necessarily awaited by
+    // the caller - e.g. firing a request and cancelling it in dispose()
+    // without awaiting the result. Without an observer here, an error (most
+    // commonly CloudCodeError.cancelled() from cancel()) would surface as an
+    // uncaught async error in the current Zone, and once AppAmbitSdk.start()
+    // has installed its PlatformDispatcher.onError hook, get auto-reported
+    // to the dashboard as a customer app error. ignore() only marks the
+    // future as observed; real callers that do await/listen still receive
+    // the error normally through their own subscription.
+    request.future.ignore();
+
     operation.then(
       request._complete,
       onError: (Object error, StackTrace stack) {
@@ -198,6 +212,7 @@ class CloudCode {
     Map<String, String>? query,
     Map<String, dynamic>? body,
     Map<String, String>? headers,
+    Duration? timeout,
   }) {
     impl.registerMethodChannelImplementation();
 
@@ -211,7 +226,8 @@ class CloudCode {
     }
 
     final platform = AppAmbitSdkFlutterPlatform.instance;
-    final operation = _invoke(
+    Future<void> cancelNative() => platform.cloudCodeCancel(requestId);
+    var operation = _invoke(
       platform.cloudCodeCall(
         requestId: requestId,
         function: function,
@@ -222,10 +238,22 @@ class CloudCode {
       ),
     );
 
-    return CloudCodeRequest._create(
-      operation,
-      () => platform.cloudCodeCancel(requestId),
-    );
+    if (timeout != null) {
+      operation = operation.timeout(
+        timeout,
+        onTimeout: () {
+          unawaited(cancelNative());
+          throw CloudCodeError(
+            code: CloudCodeErrorCode.timedOut,
+            message: 'Cloud Code request timed out after $timeout.',
+            function: function,
+            requestId: requestId,
+          );
+        },
+      );
+    }
+
+    return CloudCodeRequest._create(operation, cancelNative);
   }
 
   static CloudCodeRequest<CloudCodeResult<T>> callTyped<T>(
@@ -234,6 +262,7 @@ class CloudCode {
     Map<String, String>? query,
     Map<String, dynamic>? body,
     Map<String, String>? headers,
+    Duration? timeout,
     required T Function(Object? value) fromJson,
   }) {
     final request = call(
@@ -242,6 +271,7 @@ class CloudCode {
       query: query,
       body: body,
       headers: headers,
+      timeout: timeout,
     );
 
     final typedOperation = request.future.then((response) {
@@ -277,7 +307,7 @@ class CloudCode {
       final map = _asStringKeyedMap(raw);
       return CloudCodeResponse(
         data: _normalizeValue(map['data']),
-        statusCode: _asInt(map['statusCode']) ?? 0,
+        statusCode: _asInt(map['statusCode']),
         requestId: map['requestId'] as String?,
         headers: _asStringMap(map['headers']),
       );
@@ -406,6 +436,8 @@ CloudCodeErrorCode _errorCodeFromWire(Object? value) {
       return CloudCodeErrorCode.decoding;
     case 'HTTP':
       return CloudCodeErrorCode.http;
+    case 'BAD_ARGS':
+      return CloudCodeErrorCode.badArgs;
     default:
       return CloudCodeErrorCode.unknown;
   }

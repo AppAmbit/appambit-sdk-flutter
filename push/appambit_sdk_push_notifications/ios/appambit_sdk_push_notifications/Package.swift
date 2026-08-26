@@ -5,7 +5,7 @@ import PackageDescription
 let package = Package(
     name: "appambit_sdk_push_notifications",
     platforms: [
-        .iOS(.v12)
+        .iOS(.v13)
     ],
     products: [
         .library(

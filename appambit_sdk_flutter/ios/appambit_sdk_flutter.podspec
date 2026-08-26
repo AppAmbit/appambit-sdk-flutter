@@ -15,7 +15,7 @@ Lightweight SDK for analytics, events, logging, crashes, and offline support. Si
   s.source           = { :path => '.' }
   s.source_files = 'appambit_sdk_flutter/Sources/appambit_sdk_flutter/**/*.swift'
   s.dependency 'Flutter'
-  s.platform = :ios, '12.0'
+  s.platform = :ios, '13.0'
 
   s.dependency 'AppAmbitSdk', '1.2.0'
   # Flutter.framework does not contain a i386 slice.

@@ -707,14 +707,14 @@ class _CloudCodeViewState extends State<CloudCodeView> {
   }
 
   String _formatMetadata({
-    required int statusCode,
+    required int? statusCode,
     required String? requestId,
     required Map<String, String> headers,
     required Object? body,
     required Duration elapsed,
   }) {
     final lines = <String>[
-      'HTTP $statusCode',
+      'HTTP ${statusCode ?? 'unknown'}',
       'Duration: ${_formatDuration(elapsed)}',
       'requestId: ${requestId ?? 'none'}',
     ];

@@ -150,6 +150,141 @@ void main() {
     );
   });
 
+  test(
+    'maps every native CloudCodeError.Code constant to its Dart counterpart',
+    () async {
+      // Mirrors the 14 constants of com.appambit.sdk.models.cloudcode.
+      // CloudCodeError$Code, decompiled from the real appambit:1.2.0 AAR.
+      const wireToDart = {
+        'NOT_INITIALIZED': CloudCodeErrorCode.notInitialized,
+        'INVALID_FUNCTION': CloudCodeErrorCode.invalidFunction,
+        'INVALID_METHOD': CloudCodeErrorCode.invalidMethod,
+        'INVALID_QUERY': CloudCodeErrorCode.invalidQuery,
+        'INVALID_BODY': CloudCodeErrorCode.invalidBody,
+        'INVALID_HEADER': CloudCodeErrorCode.invalidHeader,
+        'INVALID_RESPONSE_TYPE': CloudCodeErrorCode.invalidResponseType,
+        'CANCELLED': CloudCodeErrorCode.cancelled,
+        'NETWORK_UNAVAILABLE': CloudCodeErrorCode.networkUnavailable,
+        'TIMED_OUT': CloudCodeErrorCode.timedOut,
+        'INVALID_URL': CloudCodeErrorCode.invalidUrl,
+        'TRANSPORT': CloudCodeErrorCode.transport,
+        'DECODING': CloudCodeErrorCode.decoding,
+        'HTTP': CloudCodeErrorCode.http,
+      };
+
+      for (final entry in wireToDart.entries) {
+        platform.callHandler = () async {
+          throw PlatformException(
+            code: 'CLOUD_CODE_ERROR',
+            message: 'native error',
+            details: {'code': entry.key},
+          );
+        };
+
+        await expectLater(
+          CloudCode.call('probe-${entry.key}').future,
+          throwsA(
+            isA<CloudCodeError>().having(
+              (error) => error.code,
+              'code',
+              entry.value,
+            ),
+          ),
+          reason: 'wire code ${entry.key} should map to ${entry.value}',
+        );
+      }
+    },
+  );
+
+  test(
+    'BAD_ARGS from a bridge (no structured details) maps to CloudCodeErrorCode.badArgs',
+    () async {
+      // Both CloudCodeFlutter.kt and CloudCodeFlutter.swift reply
+      // result.error("BAD_ARGS", ..., details: null) for malformed
+      // arguments - a platform-channel contract violation caught before the
+      // native Cloud Code SDK is ever reached, distinct from any of its 14
+      // error codes.
+      platform.callHandler = () async {
+        throw PlatformException(
+          code: 'BAD_ARGS',
+          message: "Missing 'requestId'",
+        );
+      };
+
+      await expectLater(
+        CloudCode.call('bad-args-probe').future,
+        throwsA(
+          isA<CloudCodeError>().having(
+            (error) => error.code,
+            'code',
+            CloudCodeErrorCode.badArgs,
+          ),
+        ),
+      );
+    },
+  );
+
+  test('statusCode is null when the bridge sends no statusCode', () async {
+    platform.callHandler = () async => {
+      'data': null,
+      'requestId': 'req-no-status',
+      'headers': <String, String>{},
+    };
+
+    final response = await CloudCode.call('no-status-code').future;
+    expect(response.statusCode, isNull);
+  });
+
+  test(
+    'an unobserved cancellation never surfaces as an uncaught async error',
+    () async {
+      // Regression for the bug where cancel()'s completeError() would be
+      // reported through the current Zone's error handler whenever nobody
+      // awaited request.future - e.g. cancelling in dispose() without
+      // awaiting the result.
+      Object? uncaughtError;
+      await runZonedGuarded(
+        () async {
+          final pending = Completer<Map<dynamic, dynamic>>();
+          platform.callHandler = () => pending.future;
+
+          final request = CloudCode.call('fire-and-forget');
+          await request.cancel();
+          // Deliberately never awaits/listens to request.future.
+          await Future<void>.delayed(Duration.zero);
+        },
+        (error, stack) {
+          uncaughtError = error;
+        },
+      );
+
+      expect(uncaughtError, isNull);
+    },
+  );
+
+  test('times out on the Dart side and cancels the native request', () async {
+    final pending = Completer<Map<dynamic, dynamic>>();
+    platform.callHandler = () => pending.future;
+
+    final future = CloudCode.call(
+      'slow-function',
+      timeout: const Duration(milliseconds: 10),
+    ).future;
+
+    await expectLater(
+      future,
+      throwsA(
+        isA<CloudCodeError>().having(
+          (error) => error.code,
+          'code',
+          CloudCodeErrorCode.timedOut,
+        ),
+      ),
+    );
+    await Future<void>.delayed(Duration.zero);
+    expect(platform.cancelledRequestId, isNotNull);
+  });
+
   test('cancels a pending request through the platform bridge', () async {
     final pending = Completer<Map<dynamic, dynamic>>();
     platform.callHandler = () => pending.future;
@@ -177,6 +312,26 @@ void main() {
 
     expect(platform.messagePayloads, hasLength(2));
   });
+
+  test(
+    'does not throttle a burst of IDENTICAL explicit error messages',
+    () async {
+      // Regression: logError's automatic-error dedup window (3s) was
+      // accidentally catching pure message-only calls too, because
+      // effectiveStack falls back to StackTrace.current when no
+      // exception/stackTrace is supplied, making every call look
+      // "exception-like". Firing the same explicit message N times in a
+      // burst (e.g. a test/demo button that logs 5 identical errors) used
+      // to silently drop all but the first.
+      final futures = List.generate(
+        5,
+        (_) => AppAmbitSdk.logError(message: 'same message every time'),
+      );
+      await Future.wait(futures);
+
+      expect(platform.messagePayloads, hasLength(5));
+    },
+  );
 
   test('throttles a burst of automatic Flutter errors', () async {
     final previousFlutterError = FlutterError.onError;

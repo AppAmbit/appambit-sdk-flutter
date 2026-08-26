@@ -198,8 +198,15 @@ class AppAmbitSdk extends NavigatorObserver {
 
     final bool userProvidedMessage = message != null && message.isNotEmpty;
 
-    final bool hasExceptionLike =
-        (exception != null) || (stackStr != null && stackStr.isNotEmpty);
+    // Only dedupe calls that actually carry caller-supplied exception/stack
+    // context (this is what _reportAutomaticError always passes). stackStr
+    // itself is NOT a reliable signal here: effectiveStack falls back to
+    // StackTrace.current when neither exception nor stackTrace is given, so
+    // a pure message-only call would otherwise always look "exception-like"
+    // and get silently deduped against any other identical message fired
+    // within the cooldown window - e.g. firing the same explicit logError
+    // message N times in a burst would drop all but the first.
+    final bool hasExceptionLike = exception != null || stackTrace != null;
     if (hasExceptionLike) {
       final int digest = _computeDigest(
         exception: exception,

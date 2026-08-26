@@ -1,7 +1,7 @@
 package com.appambit.appambit_sdk_flutter
 
 import com.appambit.sdk.CloudCode
-import com.appambit.sdk.enums.HttpMethodEnum
+import com.appambit.sdk.enums.CloudCodeHttpMethod
 import com.appambit.sdk.models.cloudcode.CloudCodeError
 import com.appambit.sdk.models.cloudcode.CloudCodeRequest
 import com.appambit.sdk.models.cloudcode.CloudCodeResponse
@@ -89,9 +89,9 @@ class CloudCodeFlutter {
         pending.result.error("CLOUD_CODE_ERROR", "Cloud Code request was cancelled", mapOf("code" to "CANCELLED"))
     }
 
-    private fun parseMethod(value: String?): HttpMethodEnum? {
+    private fun parseMethod(value: String?): CloudCodeHttpMethod? {
         return try {
-            HttpMethodEnum.valueOf(value?.uppercase() ?: "")
+            CloudCodeHttpMethod.valueOf(value?.uppercase() ?: "")
         } catch (_: IllegalArgumentException) {
             null
         }

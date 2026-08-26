@@ -57,6 +57,12 @@ public class AppAmbitSdkFlutterPlugin: NSObject, FlutterPlugin {
      registrar.addMethodCallDelegate(cloudCodeInstance, channel: cloudCodeChannel)
   }
 
+  public func detachFromEngine(for registrar: FlutterPluginRegistrar) {
+    if scope == .cloudCode {
+      CloudCodeFlutter.detach()
+    }
+  }
+
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch scope {
 

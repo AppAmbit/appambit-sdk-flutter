@@ -7,11 +7,20 @@ final class CloudCodeFlutter {
     private static var requests: [String: PendingRequest] = [:]
 
     private final class PendingRequest {
-        let token: CloudCodeCancellationToken
+        // Set once CloudCode.call(...) returns. Every completion path in the
+        // native SDK (CloudCodeService.call) currently delivers via
+        // DispatchQueue.main.async, so in practice the closure below never
+        // runs before this is assigned - but that's an implementation detail
+        // of a dependency we don't control, not part of its documented
+        // contract. Registering the PendingRequest before calling
+        // CloudCode.call (see `call` below) means a future synchronous
+        // completion still finds it in `requests`, instead of silently
+        // dropping the FlutterResult and leaking the entry - mirrors how the
+        // Android bridge registers before attaching callbacks.
+        var token: CloudCodeCancellationToken?
         let result: FlutterResult
 
-        init(token: CloudCodeCancellationToken, result: @escaping FlutterResult) {
-            self.token = token
+        init(result: @escaping FlutterResult) {
             self.result = result
         }
     }
@@ -33,6 +42,11 @@ final class CloudCodeFlutter {
         let query = args["query"] as? [String: String]
         let body = args["body"] as? [String: Any]
         let headers = args["headers"] as? [String: String]
+
+        let pending = PendingRequest(result: result)
+        lock.lock()
+        requests[requestId] = pending
+        lock.unlock()
 
         let token = CloudCode.call(
             function,
@@ -70,7 +84,7 @@ final class CloudCodeFlutter {
         }
 
         lock.lock()
-        requests[requestId] = PendingRequest(token: token, result: result)
+        pending.token = token
         lock.unlock()
     }
 
@@ -83,7 +97,7 @@ final class CloudCodeFlutter {
         }
 
         if let pending = remove(requestId) {
-            pending.token.cancel()
+            pending.token?.cancel()
             pending.result(FlutterError(
                 code: "CLOUD_CODE_ERROR",
                 message: "Cloud Code request was cancelled",
@@ -91,6 +105,25 @@ final class CloudCodeFlutter {
             ))
         }
         result(nil)
+    }
+
+    /// Mirrors CloudCodeFlutter.kt's detach(): fails every still-pending
+    /// request instead of leaking its FlutterResult and cancellation token
+    /// past engine teardown (e.g. a hot restart).
+    static func detach() {
+        lock.lock()
+        let pending = requests
+        requests.removeAll()
+        lock.unlock()
+
+        for (_, request) in pending {
+            request.token?.cancel()
+            request.result(FlutterError(
+                code: "CLOUD_CODE_ERROR",
+                message: "Cloud Code request was cancelled",
+                details: ["code": "CANCELLED"]
+            ))
+        }
     }
 
     private static func method(from value: String?) -> CloudCodeHttpMethod? {
