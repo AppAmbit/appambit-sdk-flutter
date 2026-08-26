@@ -46,11 +46,11 @@ Lightweight SDK for analytics, events, logging, crashes, and offline support. Si
 - Flutter SDK >=3.3.0
 - Dart SDK >=3.9.0
 - **Android SDK with:**
-    - Android 5.0+
-    - compileSdkVersion 34
-    - targetSdkVersion 34
-    - minSdkVersion 21
+    - Android 7.0+ (API 24)
+    - compileSdkVersion 36
+    - minSdkVersion 24
 - **iOS SDK with:**
+    - iOS 13.0+
     - Xcode 15+ (for iOS)
     - macOS 13+
 
@@ -214,8 +214,16 @@ final result = await CloudCode.callTyped<int>(
 
 Cloud Code calls are request/response operations and are not queued for offline
 upload. The SDK forwards authentication, rejects reserved headers, and applies
-the native 60-second timeout. It does not manage tokens, URLs, retries, or
-timeouts in Dart.
+the native 60-second timeout. It does not manage tokens, URLs, or retries in
+Dart.
+
+Optionally pass a shorter `timeout` to give up sooner and cancel the native
+call early; it cannot extend past the native 60-second limit, and it's a
+Flutter-only addition (not part of the Android, iOS, or .NET API):
+
+```dart
+final request = CloudCode.call('hello', timeout: const Duration(seconds: 10));
+```
 
 See the [Cloud Code mobile guide](https://docs.appambit.com/sdk-guides/cloud-code/)
 for function setup, HTTP triggers, typed and dynamic responses, errors, request

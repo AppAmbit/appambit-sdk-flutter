@@ -4,6 +4,11 @@
 
 * **[Feature]** Added Cloud Code implementation for Flutter.
 
+### AppAmbit Push Notifications SDK
+
+* **[Compatibility]** Raised minimum iOS deployment target to iOS 13 (`Package.swift`, podspec).
+* **[Compatibility]** Minimum Android SDK is 24.
+
 ## Version 1.1.0
 
 ### AppAmbit SDK
