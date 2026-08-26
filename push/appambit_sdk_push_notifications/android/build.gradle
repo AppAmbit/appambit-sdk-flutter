@@ -71,12 +71,15 @@ dependencies {
     implementation("com.appambit:appambit.push.notifications:1.2.0")
     implementation 'com.google.firebase:firebase-messaging:23.4.0'
     // appambit.push.notifications:1.2.0's POM declares no dependencies even
-    // though MessagingService references okhttp3 directly (it posts the FCM
-    // token to AppAmbit's API without going through the core SDK). Without
-    // this the app crashes with NoClassDefFoundError the first time a token
-    // is registered. Remove once the SDK team republishes with a complete
-    // POM. Note: unlike the core `appambit` package, this AAR does NOT
-    // reference any com.appambit.sdk classes outside its own package, so it
-    // does not need the core `com.appambit:appambit` SDK as a dependency.
+    // though MessagingService has a `static final OkHttpClient` field built
+    // eagerly in its own static initializer (used by getBitmapFromUrl() to
+    // download rich-notification images - NOT for FCM token registration,
+    // which goes through PushKernel.handleNewToken() instead). Because it's
+    // eager, NoClassDefFoundError hits as soon as Android loads
+    // MessagingService, before any push-specific feature is even used.
+    // Remove once the SDK team republishes with a complete POM. Note:
+    // unlike the core `appambit` package, this AAR does NOT reference any
+    // com.appambit.sdk classes outside its own package, so it does not need
+    // the core `com.appambit:appambit` SDK as a dependency.
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }

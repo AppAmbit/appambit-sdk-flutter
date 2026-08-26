@@ -33,7 +33,7 @@ enum CloudCodeErrorCode {
   decoding,
   http,
   /// The native bridge rejected the platform-channel call itself (e.g. a
-  /// missing `requestId`) before ever reaching the native Cloud Code SDK.
+  /// missing `correlationId`) before ever reaching the native Cloud Code SDK.
   badArgs,
   unknown,
 }
