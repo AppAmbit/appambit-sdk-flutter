@@ -16,6 +16,7 @@ Lightweight SDK for analytics, events, logging, crashes, and offline support. Si
 * [Install](#install)
 * [Quickstart](#quickstart)
 * [Usage](#usage)
+* [Cloud Code](#cloud-code)
 * [Release Distribution](#release-distribution)
 * [Privacy and Data](#privacy-and-data)
 * [Troubleshooting](#troubleshooting)
@@ -34,6 +35,7 @@ Lightweight SDK for analytics, events, logging, crashes, and offline support. Si
 * Crash capture with stack traces and threads
 * Offline support with batching, retry, and queue
 * Cloud SQLite database with raw SQL and query builder
+* Cloud Code HTTP function calls with typed and dynamic JSON responses
 * Create mutliple app profiles for staging and production
 * Small footprint
 
@@ -63,7 +65,7 @@ Add the AppAmbit Flutter SDK to your app’s `pubspec.yml`.
 dependencies:
   flutter:
     sdk: flutter
-  appambit_sdk_flutter: ^1.1.0
+  appambit_sdk_flutter: ^1.2.0
 ```
 
 and then
@@ -151,6 +153,39 @@ final tasks = await AppAmbitDb.from('tasks')
 
 ---
 
+## Cloud Code
+
+Cloud Code lets your app invoke authenticated HTTP functions hosted by AppAmbit.
+Initialize the SDK as usual; Cloud Code uses the same consumer and Bearer token
+as the rest of the SDK.
+
+Configure an active Cloud Function with an enabled HTTP trigger and slug in the
+AppAmbit Dashboard before calling it:
+
+```dart
+import 'package:appambit_sdk_flutter/appambit_sdk_flutter.dart';
+
+final request = CloudCode.call(
+  'hello',
+  method: CloudCodeHttpMethod.post,
+  body: {'name': 'Ada'},
+);
+
+try {
+  final response = await request.future;
+  debugPrint('HTTP ${response.statusCode}: ${response.data}');
+} on CloudCodeError catch (error) {
+  debugPrint('${error.code}: ${error.message}');
+}
+```
+
+Cloud Code supports dynamic and typed JSON responses, request IDs,
+cancellation, reserved-header validation, and a native 60-second timeout. Calls
+are not queued for offline upload. See the [Cloud Code mobile guide](https://docs.appambit.com/sdk-guides/cloud-code/)
+for HTTP triggers, errors, cancellation, and backend examples.
+
+---
+
 ## Release Distribution
 
 * Push the artifact to your AppAmbit dashboard for distribution via email and direct installation.
@@ -216,4 +251,3 @@ Open source under the terms described in the [LICENSE](./LICENSE) file.
 * **Dashboard**: [appambit.com](https://appambit.com)
 * **Discord**: [discord.gg](https://discord.gg/nJyetYue2s)
 * **Examples**: Sample Flutter test app included in repo.
-

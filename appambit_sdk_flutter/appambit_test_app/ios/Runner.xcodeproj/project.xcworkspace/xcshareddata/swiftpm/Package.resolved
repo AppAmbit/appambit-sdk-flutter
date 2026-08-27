@@ -1,0 +1,13 @@
+{
+  "pins" : [
+    {
+      "identity" : "appambit-sdk-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/AppAmbit/appambit-sdk-ios.git",
+      "state" : {
+        "revision" : "75ba2fff0abd785d7e442cf1711d62830caa08bb"
+      }
+    }
+  ],
+  "version" : 2
+}
