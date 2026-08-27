@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 
 import 'appambit_sdk_flutter_method_channel.dart' as impl;
 import 'appambit_sdk_flutter_platform_interface.dart';
+export 'appambit_cloud_code.dart';
 export 'appambit_cms.dart';
 export 'appambit_db.dart';
 
@@ -16,6 +17,11 @@ class AppAmbitSdk extends NavigatorObserver {
 
   static final Map<int, int> _recentErrorDigests = <int, int>{};
   static const int _dedupeTtlMs = 3000;
+  static final Map<int, DateTime> _recentAutomaticErrorSignatures =
+      <int, DateTime>{};
+  static const Duration _automaticErrorCooldown = Duration(
+    milliseconds: _dedupeTtlMs,
+  );
 
   static void _ensureRegistered() {
     impl.registerMethodChannelImplementation();
@@ -192,8 +198,15 @@ class AppAmbitSdk extends NavigatorObserver {
 
     final bool userProvidedMessage = message != null && message.isNotEmpty;
 
-    final bool hasExceptionLike =
-        (exception != null) || (stackStr != null && stackStr.isNotEmpty);
+    // Only dedupe calls that actually carry caller-supplied exception/stack
+    // context (this is what _reportAutomaticError always passes). stackStr
+    // itself is NOT a reliable signal here: effectiveStack falls back to
+    // StackTrace.current when neither exception nor stackTrace is given, so
+    // a pure message-only call would otherwise always look "exception-like"
+    // and get silently deduped against any other identical message fired
+    // within the cooldown window - e.g. firing the same explicit logError
+    // message N times in a burst would drop all but the first.
+    final bool hasExceptionLike = exception != null || stackTrace != null;
     if (hasExceptionLike) {
       final int digest = _computeDigest(
         exception: exception,
@@ -241,7 +254,7 @@ class AppAmbitSdk extends NavigatorObserver {
     FlutterError.onError = (FlutterErrorDetails details) {
       final Object error = details.exception;
       final StackTrace stack = details.stack ?? StackTrace.current;
-      AppAmbitSdk.logError(exception: error, stackTrace: stack);
+      _reportAutomaticError(error, stack);
       try {
         originalFlutterOnError?.call(details);
       } catch (_) {}
@@ -251,7 +264,7 @@ class AppAmbitSdk extends NavigatorObserver {
     };
 
     ui.PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
-      AppAmbitSdk.logError(exception: error, stackTrace: stack);
+      _reportAutomaticError(error, stack);
       return true;
     };
 
@@ -261,9 +274,34 @@ class AppAmbitSdk extends NavigatorObserver {
       final StackTrace stack = StackTrace.fromString(
         errorAndStack.last as String,
       );
-      AppAmbitSdk.logError(exception: error, stackTrace: stack);
+      _reportAutomaticError(error, stack);
     });
     Isolate.current.addErrorListener(_isolateErrorPort!.sendPort);
+  }
+
+  // Framework failures can fan out through multiple hooks during one action,
+  // re-reporting the same error repeatedly. Throttle by error signature
+  // (type + message) rather than globally, so an unrelated error that
+  // happens to occur moments later is still reported.
+  static void _reportAutomaticError(Object error, StackTrace stack) {
+    final now = DateTime.now();
+    final signature = _automaticErrorSignature(error);
+    final last = _recentAutomaticErrorSignatures[signature];
+    if (last != null && now.difference(last) < _automaticErrorCooldown) {
+      return;
+    }
+    _recentAutomaticErrorSignatures[signature] = now;
+    _recentAutomaticErrorSignatures.removeWhere(
+      (_, t) => now.difference(t) >= _automaticErrorCooldown,
+    );
+
+    unawaited(
+      logError(exception: error, stackTrace: stack).catchError((Object _) {}),
+    );
+  }
+
+  static int _automaticErrorSignature(Object error) {
+    return Object.hash(error.runtimeType, error.toString());
   }
 
   static int _computeDigest({

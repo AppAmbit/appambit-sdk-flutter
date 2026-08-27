@@ -116,4 +116,20 @@ abstract class AppAmbitSdkFlutterPlatform extends PlatformInterface {
   }) {
     throw UnimplementedError('dbBatch() not implemented');
   }
+
+  /// Cloud Code
+  Future<Map<dynamic, dynamic>> cloudCodeCall({
+    required String correlationId,
+    required String function,
+    required String method,
+    Map<String, String>? query,
+    Map<String, dynamic>? body,
+    Map<String, String>? headers,
+  }) {
+    throw UnimplementedError('cloudCodeCall() not implemented');
+  }
+
+  Future<void> cloudCodeCancel(String correlationId) {
+    throw UnimplementedError('cloudCodeCancel() not implemented');
+  }
 }

@@ -540,6 +540,7 @@ class _DatabaseViewState extends State<DatabaseView> {
                   child: Text('(no rows)',
                       style: TextStyle(color: Colors.grey, fontFamily: 'monospace')))
               : ListView.builder(
+                  primary: false,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   itemCount: _rows.length,
                   itemBuilder: (context, i) {

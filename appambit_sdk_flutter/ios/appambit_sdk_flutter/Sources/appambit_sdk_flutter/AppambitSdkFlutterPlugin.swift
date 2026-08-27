@@ -9,10 +9,11 @@ public class AppAmbitSdkFlutterPlugin: NSObject, FlutterPlugin {
   private static let analyticsChannelName = "com.appambit/analytics"
   private static let crashesChannelName   = "com.appambit/crashes"
   private static let remoteConfigChannelName = "com.appambit/remoteconfig"
-  private static let cmsChannelName          = "com.appambit/cms"
-  private static let dbChannelName           = "com.appambit/db"
+   private static let cmsChannelName          = "com.appambit/cms"
+   private static let dbChannelName           = "com.appambit/db"
+   private static let cloudCodeChannelName    = "com.appambit/cloudcode"
 
-  private enum Scope { case core, analytics, crashes, remoteConfig, cms, database }
+  private enum Scope { case core, analytics, crashes, remoteConfig, cms, database, cloudCode }
   private let scope: Scope
 
   private init(scope: Scope) {
@@ -47,8 +48,19 @@ public class AppAmbitSdkFlutterPlugin: NSObject, FlutterPlugin {
 
     // Database
     let dbChannel = FlutterMethodChannel(name: dbChannelName, binaryMessenger: registrar.messenger())
-    let dbInstance = AppAmbitSdkFlutterPlugin(scope: .database)
-    registrar.addMethodCallDelegate(dbInstance, channel: dbChannel)
+     let dbInstance = AppAmbitSdkFlutterPlugin(scope: .database)
+     registrar.addMethodCallDelegate(dbInstance, channel: dbChannel)
+
+     // Cloud Code
+     let cloudCodeChannel = FlutterMethodChannel(name: cloudCodeChannelName, binaryMessenger: registrar.messenger())
+     let cloudCodeInstance = AppAmbitSdkFlutterPlugin(scope: .cloudCode)
+     registrar.addMethodCallDelegate(cloudCodeInstance, channel: cloudCodeChannel)
+  }
+
+  public func detachFromEngine(for registrar: FlutterPluginRegistrar) {
+    if scope == .cloudCode {
+      CloudCodeFlutter.detach()
+    }
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -128,13 +140,21 @@ public class AppAmbitSdkFlutterPlugin: NSObject, FlutterPlugin {
             result(FlutterMethodNotImplemented)
         }
 
-    case .database:
+     case .database:
+         switch call.method {
+         case "execute":             DatabaseFlutter.execute(args: call.arguments, result: result)
+         case "batch":               DatabaseFlutter.batch(args: call.arguments, result: result)
+         default:
+             result(FlutterMethodNotImplemented)
+         }
+
+    case .cloudCode:
         switch call.method {
-        case "execute":             DatabaseFlutter.execute(args: call.arguments, result: result)
-        case "batch":               DatabaseFlutter.batch(args: call.arguments, result: result)
+        case "call":                 CloudCodeFlutter.call(args: call.arguments, result: result)
+        case "cancel":               CloudCodeFlutter.cancel(args: call.arguments, result: result)
         default:
             result(FlutterMethodNotImplemented)
         }
-    }
-}
+     }
+ }
 }

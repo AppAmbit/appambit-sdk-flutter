@@ -144,9 +144,16 @@ class MethodChannelAppAmbitSdkFlutter extends AppAmbitSdkFlutterPlatform {
   // Database
   final MethodChannel _db = const MethodChannel('com.appambit/db');
 
+  // Cloud Code
+  final MethodChannel _cloudCode = const MethodChannel(
+    'com.appambit/cloudcode',
+  );
+
   @override
   Future<Map<dynamic, dynamic>> dbExecute(
-      String sql, List<Object?>? params) async {
+    String sql,
+    List<Object?>? params,
+  ) async {
     final res = await _db.invokeMethod<Map<dynamic, dynamic>>('execute', {
       'sql': sql,
       if (params != null && params.isNotEmpty) 'params': params,
@@ -164,9 +171,7 @@ class MethodChannelAppAmbitSdkFlutter extends AppAmbitSdkFlutterPlatform {
       'inTransaction': inTransaction,
     });
     if (res == null) return [];
-    return res
-        .map((e) => Map<dynamic, dynamic>.from(e as Map))
-        .toList();
+    return res.map((e) => Map<dynamic, dynamic>.from(e as Map)).toList();
   }
 
   @override
@@ -186,10 +191,38 @@ class MethodChannelAppAmbitSdkFlutter extends AppAmbitSdkFlutterPlatform {
       'orderBy': orderBy,
       'orderDir': orderDir,
     });
-    
+
     if (res == null) return [];
-    
+
     return res.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  @override
+  Future<Map<dynamic, dynamic>> cloudCodeCall({
+    required String correlationId,
+    required String function,
+    required String method,
+    Map<String, String>? query,
+    Map<String, dynamic>? body,
+    Map<String, String>? headers,
+  }) async {
+    final response = await _cloudCode
+        .invokeMethod<Map<dynamic, dynamic>>('call', <String, dynamic>{
+          'correlationId': correlationId,
+          'function': function,
+          'method': method,
+          'query': query,
+          'body': body,
+          'headers': headers,
+        });
+    return response ?? <dynamic, dynamic>{};
+  }
+
+  @override
+  Future<void> cloudCodeCancel(String correlationId) {
+    return _cloudCode.invokeMethod<void>('cancel', {
+      'correlationId': correlationId,
+    });
   }
 }
 
