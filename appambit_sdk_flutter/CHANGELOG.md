@@ -1,3 +1,9 @@
+## Version 1.2.1
+
+### AppAmbit SDK
+
+* **[Docs]** Updated the README with a quick start, requirements, a package/import reference table, usage guides for events, logs, breadcrumbs, remote config, CMS, Database, and Cloud Code, plus release distribution pipelines, sample apps, starter apps, MCP setup, and the REST API.
+
 ## Version 1.2.0
 
 ### AppAmbit SDK
@@ -5,7 +11,6 @@
 * **[Feature]** Added Cloud Code implementation for Flutter.
 * **[Compatibility]** Raised minimum iOS deployment target to iOS 13 (`Package.swift`, podspec).
 * **[Compatibility]** Minimum Android SDK is 24.
-* **[Docs]** Updated the README with a quick start, requirements, a package/import reference table, usage guides for events, logs, breadcrumbs, remote config, CMS, Database, and Cloud Code, plus release distribution pipelines, sample apps, starter apps, MCP setup, and the REST API.
 
 ## Version 1.1.0
 
