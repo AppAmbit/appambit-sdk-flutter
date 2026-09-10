@@ -116,7 +116,7 @@ Or add it to your `pubspec.yaml` directly:
 dependencies:
   flutter:
     sdk: flutter
-  appambit_sdk_flutter: ^1.2.0
+  appambit_sdk_flutter: ^1.2.1
 ```
 
 then run `flutter pub get`.
