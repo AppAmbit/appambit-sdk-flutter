@@ -47,6 +47,10 @@ android {
 
     defaultConfig {
         minSdk = 24
+        // Shipped to every consuming app. The background push bridge is only
+        // reachable by reflection from AndroidManifest meta-data, so R8
+        // strips it from release builds without these. See consumer-rules.pro.
+        consumerProguardFiles "consumer-rules.pro"
     }
 
     dependencies {
