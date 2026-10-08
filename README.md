@@ -104,7 +104,7 @@ Set it up from the AppAmbit dashboard under **Settings → AI Assistant**, where
 
 #### pub.dev
 
-> Requires **v1.2.0 or newer**. Earlier versions do not include Cloud Code support.
+> Requires **v1.2.1 or newer**. Earlier versions do not include Cloud Code support.
 
 ```bash
 flutter pub add appambit_sdk_flutter
@@ -116,7 +116,7 @@ Or add it to your `pubspec.yaml` directly:
 dependencies:
   flutter:
     sdk: flutter
-  appambit_sdk_flutter: ^1.2.0
+  appambit_sdk_flutter: ^1.2.1
 ```
 
 then run `flutter pub get`.

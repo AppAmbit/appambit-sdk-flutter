@@ -45,6 +45,10 @@ android {
 
     defaultConfig {
         minSdk = 24
+        // Shipped to every consuming app. Flutter enables R8 on release
+        // builds only, so without these the SDK's reflective wire format is
+        // obfuscated in release and intact in debug. See consumer-rules.pro.
+        consumerProguardFiles "consumer-rules.pro"
     }
 
     testOptions {
