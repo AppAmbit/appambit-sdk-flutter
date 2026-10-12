@@ -1,3 +1,14 @@
+## Version 1.2.1
+
+### AppAmbit SDK
+
+* **[Bugfix]** Android: added R8 rules (`consumerProguardFiles`) so the SDK keeps working in release builds. Previously data could stop reaching AppAmbit in release while debug builds worked.
+* **[Bugfix]** iOS: `addBreadcrumb` now completes its platform call. Before, every route change left a call pending forever.
+
+### AppAmbit Push Notifications SDK
+
+* **[Bugfix]** Android: notifications received with the app in background or closed now reach the Dart handler in release builds. R8 was removing the class the native SDK loads to deliver them; the plugin now ships R8 rules that keep it, including your own subclasses of `AppambitFlutterPushExtension`.
+
 ## Version 1.2.0
 
 ### AppAmbit SDK

@@ -93,6 +93,7 @@ public class AppAmbitSdkFlutterPlugin: NSObject, FlutterPlugin {
           return
         }
         AppAmbit.addBreadcrumb(name: name)
+        result(nil)
 
       default:
         result(FlutterMethodNotImplemented)
